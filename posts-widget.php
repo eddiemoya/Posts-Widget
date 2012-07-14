@@ -1,10 +1,10 @@
 <?php /*
-Plugin Name: Abstract Widget
+Plugin Name: Posts Widget
 Plugin URI:
 Description: Framework on which to built widgets quickly. Ideally most of this could be built into the core WP_Widget class.
 Version: 1
 Author: Eddie Moya
-Author URL: http://eddiemoya.com
+Author URI: http://eddiemoya.com
 
 Copyright (C) 2012 Eddie Moya (eddie.moya+wp[at]gmail.com)
 
