@@ -1,225 +1,405 @@
 <?php /*
 Plugin Name: Posts Widget
-Plugin URI:
-Description: Framework on which to built widgets quickly. Ideally most of this could be built into the core WP_Widget class.
-Version: 1
+Description: Starting point for building widgets quickly and easier
+Version: 1.0
 Author: Eddie Moya
-Author URI: http://eddiemoya.com
+Author URI: http://eddiemoya.com/
+ */
 
-Copyright (C) 2012 Eddie Moya (eddie.moya+wp[at]gmail.com)
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
-  */
-
-//if(!class_exists('Abstract_Widget')){
-    
-abstract class Abstract_Widget extends WP_Widget {
-
-    
+/**
+ * IMPORTANT: Change the class name for each widget
+ */    
+class Posts_Widget extends WP_Widget {
+      
+    /**
+     * Name for this widget type, should be human-readable - the actual title it will go by.
+     * 
+     * @var string [REQUIRED]
+     */
+    var $widget_name = 'Posts Widget';
+   
+    /**
+     * Root id for all widgets of this type. Will be automatically generate if not set.
+     * 
+     * @var string [OPTIONAL]. FALSE by default.
+     */
+    var $id_base = 'posts_widget';
     
     /**
-     * Root id for all widgets of this type.
+     * Shows up under the widget in the admin interface
      * 
-     * @var string 
+     * @var string [OPTIONAL]
      */
-    protected $id_base = false;
-    
-    /**
-     * Name for this widget type.
-     * 
-     * @var string 
-     */
-    protected $name;
-    
-    /** 
-     * Associative array passed to wp_register_sidebar_widget(). 
-     * Two items can be passed here:
-     * 
-     * * 'description' -> This will be shown as the widget description under the widget
-     * in the Widgets admin page.
-     * 
-     * * 'classname' -> This will be used as a classname on the wrapping element
-     * when the widget is rendered on the front-end.
-     *
-     * @var array Optional
-     */
-    protected $widget_options;
-    
-    /**
-     * Associative array passed to wp_register_widget_control().
-     * 
-     * The options contains the 'height' and'width. The 'height'
-     * option is never used. The 'width' option is the width of the fully expanded
-     * control form, but try hard to use the default width.
-     *
-     * @var array Optional.
-     */
-    protected $control_options;
+    private $description = 'Posts Widget Example';
 
     /**
-     * PHP4
+     * CSS class used in the wrapping container for each instance of the widget on the front end.
+     * 
+     * @var string [OPTIONAL]
      */
-    public function Abstract_Widget(){
-        $this->__contructor();
-    }
+    private $classname = 'posts-widget';
     
     /**
-     * PHP5
+     * Be careful to consider PHP versions. If running PHP4 class name as the contructor instead.
+     * 
+     * @author Eddie Moya
+     * @return void
      */
-    public function __contructor() {
-
-        $this->widget_ops = array(
+    public function Posts_Widget(){
+        $widget_ops = array(
             'description' => $this->description,
             'classname' => $this->classname
         );
 
-        parent::WP_Widget($this->id_base, $this->name, $this->widget_ops);
+        parent::WP_Widget($this->id_base, $this->widget_name, $this->widget_ops);
     }
     
     /**
-     * Self-registering widget mothod.
+     * Self-registering widget method.
+     * 
+     * This can be called statically.
+     * 
+     * @author Eddie Moya
+     * @return void
+     */
+    public function register_widget() {
+        add_action('widgets_init', create_function( '', 'register_widget("' . __CLASS__ . '");' ));
+    }
+    
+    /**
+     * The front end of the widget. 
+     * 
+     * Do not call directly, this is called internally to render the widget.
+     * 
+     * @author [Widget Author Name]
+     * 
+     * @param array $args       [Required] Automatically passed by WordPress - Settings defined when registering the sidebar of a theme
+     * @param array $instance   [Required] Automatically passed by WordPress - Current saved data for the widget options.
+     * @return void 
+     */
+    public function widget( $args, $instance ){
+        extract($args);
+        extract($instance);
+        
+        echo $before_title . $bp_title . $after_title;
+        
+        ?>
+            <h3><?php echo $bp_string; ?></h3>
+                
+            <?php if($bp_checkbox) { ?>
+                <p>Check box '<?php echo $bp_checkbox; ?>' was checked</p>
+            <?php } ?>
+            
+            <?php if($bp_checkbox_2) { ?>
+                <p>Check box '<?php echo $bp_checkbox_2; ?>' was checked</p>
+            <?php } ?>
+            
+            <p>The chosen select option is:<?php echo $bp_select; ?></p>
+            <p><?php echo $bp_textarea; ?></p>
+        <?
+        
+    }
+    
+    /**
+     * Data validation. 
+     * 
+     * Do not call directly, this is called internally to render the widget
+     * 
+     * @author [Widget Author Name]
+     * 
+     * @uses esc_attr() http://codex.wordpress.org/Function_Reference/esc_attr
+     * 
+     * @param array $new_instance   [Required] Automatically passed by WordPress
+     * @param array $old_instance   [Required] Automatically passed by WordPress
+     * @return array|bool Final result of newly input data. False if update is rejected.
+     */
+    public function update($new_instance, $old_instance){
+        
+        /* Lets inherit the existing settings */
+        $instance = $old_instance;
+        
+        
+        
+        /**
+         * Sanitize each option - be careful, if not all simple text fields,
+         * then make use of other WordPress sanitization functions, but also
+         * make use of PHP functions, and use logic to return false to reject
+         * the entire update. 
+         * 
+         * @see http://codex.wordpress.org/Function_Reference/esc_attr
+         */
+        foreach($new_instance as $key => $value){
+            $instance[$key] = esc_attr($value);
+            
+        }
+        
+        
+        foreach($instance as $key => $value){
+            if($value == 'on' && !isset($new_instance[$key])){
+                unset($instance[$key]);
+            }
+
+        }
+        
+        return $instance;
+    }
+    
+    /**
+     * Generates the form for this widget, in the WordPress admin area.
+     * 
+     * The use of the helper functions form_field() and form_fields() is not
+     * neccessary, and may sometimes be inhibitive or restrictive.
      * 
      * @author Eddie Moya
      * 
-     * @param type $widget_class 
-     */
-    public function register_widget($widget_class = '') {
-        
-        if(function_exists('get_called_class')){
-            $widget_class = get_called_class(); //PHP 5.3 Eliminates the need to pass the classname explicitly.
-        }
-        
-        add_action('widgets_init', create_function( '', 'register_widget("' . $widget_class . '");' ));
-    }
-    
-    /**
+     * @uses wp_parse_args() http://codex.wordpress.org/Function_Reference/wp_parse_args
+     * @uses self::form_field()
+     * @uses self::form_fields()
      * 
-     * @abstract Is an abstract wrapper for WP_Widget::widget();
-     */
-    abstract function front_end( $args, $instance );
-
-    /**
-     * @abstract Is an abstract wrapper for WP_Widget::input_validation();
-     */
-    abstract function input_validation($new_instance, $old_instance);
-
-    /**
-     * @abstract Is an abstract wrapper for WP_Widget::update();
-     */
-    abstract function admin_form($instance);
-    
-    
-    /**
-     * Only exists because you cant define the existing concrete method in WP_Widget
-     * as abstract. If this abstraction calss were part of core this wrapper would
-     * be unecessary, the method itself would be abstract.
-     * 
-     * @param type $args
-     * @param type $instance
-     * @return type 
-     */
-    public function widget( $args, $instance ){
-        return $this->font_end( $args, $instance );
-    }
-    
-    /**
-     * Only exists because you cant define the existing concrete method in WP_Widget
-     * as abstract. If this abstraction calss were part of core this wrapper would
-     * be unecessary, the method itself would be abstract.
-     * 
-     * @param type $new_instance
-     * @param type $old_instance
-     * @return type 
-     */
-    public function update($new_instance, $old_instance){
-        return $this->input_validation($new_instance, $old_instance);
-    }
-    
-    /**
-     * Only exists because you cant define the existing concrete method in WP_Widget
-     * as abstract. If this abstraction calss were part of core this wrapper would
-     * be unecessary, the method itself would be abstract.
-     * 
-     * @param type $instance
-     * @return type 
+     * @param array $instance [Required] Automatically passed by WordPress
+     * @return void 
      */
     public function form($instance){
-        return $this->admin_form($instance);
+        
+        /* Setup default values for form fields - associtive array, keys are the field_id's */
+        $defaults = array('title' => '', 'style' => 'general');
+        
+        /* Merge saved input values with default values */
+        $instance = wp_parse_args((array) $instance, $defaults);
+        
+        $fields = array();
+        
+        ?><p><strong>Genreal Options:</strong></p><?php
+        
+        if($instance['show_title']) {
+            $fields[] = array(
+                'field_id' => 'display_title',
+                'type' => 'text',
+                'label' => 'Title'
+            );
+        }
+        
+        if($instance['show_subtitle']) {
+            $fields[] = array(
+                'field_id' => 'sub_title',
+                'type' => 'text',
+                'label' => 'Sub-Title'
+            );
+        }
+
+        if($instance['show_share']) {
+            $fields[] =  array(
+                'field_id' => 'share_style',
+                'type' => 'select',
+                'label' => 'Share Tools Style',
+                'options' => array(
+                    'footer' => 'Footer Bar',
+                    'flyout' => 'Flyout'
+                )
+            );
+        }
+        $this->form_fields($fields, $instance);
+        
+        
+        ?><p><strong>Query Options:</strong></p><?php
+        
+        $limit = array(
+            array(
+                'field_id' => 'limit',
+                'type' => 'select',
+                'label' => 'Number of posts',
+                'options' => range(1, 10)
+            )
+        );
+        
+        $this->form_fields($limit, $instance);
+        
+        ?><label>Include:</label><?php
+        $query_options = array(
+            array(
+                'field_id' => 'include_posts',
+                'type' => 'checkbox',
+                'label' => 'Blog Posts'
+            ),
+            array(
+                'field_id' => 'include_questions',
+                'type' => 'checkbox',
+                'label' => 'Questions'
+            ),
+            array(
+                'field_id' => 'include_guides',
+                'type' => 'checkbox',
+                'label' => 'Articles'
+            ),
+        );
+        
+        $this->form_fields($query_options, $instance, true);
+                
+        
+        
+        
+        
+        ?><p><strong>Display Options:</strong></p><?php
+        
+        
+        $show_options = array(
+            array(
+                'field_id' => 'show_title',
+                'type' => 'checkbox',
+                'label' => 'Title'
+            ),
+            array(
+                'field_id' => 'show_subtitle',
+                'type' => 'checkbox',
+                'label' => 'Sub-Title'
+            ),
+            array(
+                'field_id' => 'show_category',
+                'type' => 'checkbox',
+                'label' => 'Category'
+            ),
+        );
+        
+        
+        $this->form_fields($show_options, $instance, true);
+        
+        
+        $show_options = array(
+            array(
+                'field_id' => 'show_content',
+                'type' => 'checkbox',
+                'label' => 'Post Content'
+            ),
+            array(
+                'field_id' => 'show_comment_count',
+                'type' => 'checkbox',
+                'label' => 'Response Count'
+            ),
+        );
+        
+        
+        $this->form_fields($show_options, $instance, true);
+        
+        $show_options = array(
+            array(
+                'field_id' => 'show_share',
+                'type' => 'checkbox',
+                'label' => 'Share Icons'
+            ),
+        );
+        
+        
+        $this->form_fields($show_options, $instance, true);
+
+        
+        $this->form_field('title', 'text', 'Widget Label (shows on admin only)', $instance);
+
+        
+        
+//        $fields = array(
+//            array(
+//                'field_id' => 'title',
+//                'type' => 'text',
+//                'label' => 'Enter Title (leave empty for no title)'
+//            ),
+//            array(
+//                'field_id' => 'style',
+//                'type' => 'select',
+//                'label' => 'Select a Style',
+//                'options' => array(
+//                    'general' => 'General',
+//                    'featured' => 'Featured'
+//                )
+//            )
+//        );
+
+ 
+
+
+        /* Builds a series of inputs based on the $fields array created above. */
+        
+        
+        /* Examples of input fields one at a time. */
+//        
+//        $this->form_field('checkbox', 'checkbox', 'Choice 1', $instance);
+//        $this->form_field('checkbox_2', 'checkbox', 'Choice 2', $instance);
+//        $this->form_field('textarea', 'textarea', 'Enter Lots of Text', $instance);
+//        $this->form_field('checkbox_3', 'checkbox', 'Choice 3', $instance);
     }
     
+
     /**
-     *
-     * @param type $string
-     * @return type 
-     */
-    protected function sanitize_string($string){ 
-        return strip_tags(stripslashes($string));
-    }
-    
-    /**
-     *
-     * @param type $bool
-     * @return type 
-     */
-    protected function sanitize_bool($bool){
-        return (!empty($bool)) ? (bool) $bool : false;
-    }
-    
-    /**
+     * Helper function - does not need to be part of widgets, this is custom, but 
+     * is helpful in generating multiple input fields for the admin form at once. 
      * 
-     * @param type $fields
-     * @param type $instance 
+     * This is a wrapper for the singular form_field() function.
+     * 
+     * @author Eddie Moya
+     * 
+     * @uses self::form_fields()
+     * 
+     * @param array $fields     [Required] Nested array of field settings
+     * @param array $instance   [Required] Current instance of widget option values.
+     * @return void
      */
-    protected function form_fields($fields, $instance){
-        foreach($fields as &$field){
-            extract($field);
+    private function form_fields($fields, $instance, $group = false){
+        
+        if($group) {
+            echo "<p>";
+        }
             
-            $args['options'] = (isset($options)) ? $options : array();
-            $this->form_field($field_id, $type, $label, $args, $instance);
+        foreach($fields as &$field){
+            
+            extract($field);
+            $this->form_field($field_id, $type, $label, $instance, $options, $group);
+        }
+        
+        if($group){
+             echo "</p>";
         }
     }
     
     /**
+     * Helper function - does not need to be part of widgets, this is custom, but 
+     * is helpful in generating single input fields for the admin form at once. 
      *
-     * @param type $field_id
-     * @param type $type
-     * @param type $label
-     * @param type $args
-     * @param type $instance 
+     * @author Eddie Moya
+     * 
+     * @uses get_field_id() (No Codex Documentation)
+     * @uses get_field_name() http://codex.wordpress.org/Function_Reference/get_field_name
+     * 
+     * @param string $field_id  [Required] This will be the CSS id for the input, but also will be used internally by wordpress to identify it. Use these in the form() function to set detaults.
+     * @param string $type      [Required] The type of input to generate (text, textarea, select, checkbox]
+     * @param string $label     [Required] Text to show next to input as its label.
+     * @param array $instance   [Required] Current instance of widget option values. 
+     * @param array $options    [Optional] Associative array of values and labels for html Option elements.
+     * 
+     * @return void
      */
-    protected function form_field($field_id, $type, $label, $args, $instance){
-        $options = $args['options'];
-        
-        ?><p><?php
+    private function form_field($field_id, $type, $label, $instance, $options = array(), $group = false){
+  
+        if(!$group)
+             echo "<p>";
+            
         
         switch ($type){
             
-            case 'text':
-                ?>
+            case 'text': ?>
+            
                     <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?>: </label>
                     <input id="<?php echo $this->get_field_id( $field_id ); ?>" style="<?php echo $style; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $instance[$field_id]; ?>" />
                 <?php break;
             
-            case 'select':
-                $selected_option = $instance[$field_id];
-  
-                ?>
+            case 'select': ?>
+                    <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?>: </label>
                     <select id="<?php echo $this->get_field_id( $field_id ); ?>" class="widefat" name="<?php echo $this->get_field_name($field_id); ?>">
                         <?php
-                            foreach ( $options as $value => $label ) : 
-                                $selected = ($selected_option == $value) ? 'selected="selected"' : ''; 
-                                ?><option value="<?php echo $value; ?>" <?php selected($value, $instance[$field_id]) ?>><?php echo $label ?></option><?php
+                            foreach ( $options as $value => $label ) :  ?>
+                        
+                                <option value="<?php echo $value; ?>" <?php selected($value, $instance[$field_id]) ?>>
+                                    <?php echo $label ?>
+                                </option><?php
+                                
                             endforeach; 
                         ?>
                     </select>
@@ -233,121 +413,28 @@ abstract class Abstract_Widget extends WP_Widget {
                 
                 ?>
                     <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?>: </label>
-                    <textarea class="widefat" rows="<?php echo $rows; ?>" cols="<?php echo $cols; ?>" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>">
-                        <?php echo $instance[$field_id]; ?>
-                    </textarea>
+                    <textarea class="widefat" rows="<?php echo $rows; ?>" cols="<?php echo $cols; ?>" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"><?php echo $instance[$field_id]; ?></textarea>
                 <?php break;
             
             case 'radio' :
-                
+                /**
+                 * Need to figure out how to automatically group radio button settings with this structure.
+                 */
                 ?>
                     
                 <?php break;
             
-            case 'checkbox' :
-                
-                ?>
-                    <input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"<?php checked( $instance[$field_id]); ?> />
-                	<label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?> </label>
+            case 'checkbox' : ?>
+                    <input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"<?php checked( (!empty($instance[$field_id]))); ?> />
+                	<label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?></label>
                 <?php
         }
         
-        ?></p><?php
+        if(!$group)
+             echo "</p>";
+            
+       
     }
 }
 
-//}
-
-class Example_Widget extends Abstract_Widget {
- 
-    var $name = 'Example Widget';
-    var $id_base = 'example_widget';
-    var $description = 'Example Widget that makes widgets easier to build';
-    
-    
-    /**
-     * Widget's front end. Wrapping markup is provided by the theme, 
-     * and passed to this function via $args
-     * 
-     * This would normally just be called 'update()'
-     * 
-     * @param type $args
-     * @param type $instance 
-     */
-	function front_end( $args, $instance ) {
-		extract( $args );
-        
-        $title = $instance['example-text'];
-        //$img = $instance['img'];
-        
-        echo $before_widget;
-        
-        echo $before_title . $title . $after_title; 
-        
-        //Widget output
-        
-        echo $after_widget;
-	}
-
-    /**
-     * User input validation (input from the admin side form).
-     * Return validated sanitized data, returning false rejects the update.
-     * 
-     * This would normally just be called 'update()'
-     * 
-     * @param type $new_instance
-     * @param type $old_instance
-     * @return type 
-     */
-    function input_validation($new_instance, $old_instance) {
-        $instance = $old_instance;
-
-        //Do validation;
-        $instance['example-string'] = $this->sanitize_string($new_instance['example-string']);
-        $instance['example-text']   = $this->sanitize_string($new_instance['example-text']);
-        $instance['example-select'] = $this->sanitize_string($new_instance['example-select']);
-		$instance['example-checkbox'] = $this->sanitize_bool($new_instance['example-checkbox']);
-        $instance['example-checkbox-2'] = $this->sanitize_bool($new_instance['example-checkbox-2']);
-
-        return $instance;
-    }
-
-    /**
-     *
-     * @param type $instance 
-     */
-    function admin_form($instance) {
-
-        $defaults = array('example-text' => 'Example Text Field');
-        $instance = wp_parse_args((array) $instance, $defaults);
-
-        //Example of multiple inputs at once.
-        $fields = array(
-            array(
-                'field_id' => 'example-text',
-                'type' => 'text',
-                'label' => 'Enter Title'
-            ),
-            array(
-                'field_id' => 'example-select',
-                'type' => 'select',
-                'label' => 'Select an Option',
-                'options' => array(
-                    'option1' => 'Option 1',
-                    'option2' => 'Option 2'
-                    )
-            )
-        );
-
-        //Builds a series of inputs based on the $fields array created above.
-        $this->form_fields($fields, $instance);
-        
-        //Examples of input fields one at a time.
-        $this->form_field('example-string', 'text', 'Enter String', array(), $instance);
-        $this->form_field('example-checkbox', 'checkbox', 'Choice', array(), $instance);
-        $this->form_field('example-checkbox-2', 'checkbox', 'Choice 2', array(), $instance);
-    }
-
-}
-
-Example_Widget::register_widget("Example_Widget");
+Posts_Widget::register_widget();
