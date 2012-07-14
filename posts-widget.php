@@ -1,7 +1,7 @@
 <?php /*
 Plugin Name: Posts Widget
 Description: Starting point for building widgets quickly and easier
-Version: 1.0
+Version: 0.1
 Author: Eddie Moya
 Author URI: http://eddiemoya.com/
  */
