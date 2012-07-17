@@ -134,11 +134,6 @@ class Posts_Widget extends WP_Widget {
             $query['posts__in'] = $instance['posts__in'];
         }
 
-<<<<<<< HEAD
-=======
-        
-        
->>>>>>> 64436b37eb667b92a13f0d284386b3c1e505e0fc
         $widget_posts = new WP_Query(array(
             'limit'     => $limit,
             'post_type' => $post_types
