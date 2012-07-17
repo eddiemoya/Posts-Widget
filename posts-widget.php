@@ -77,29 +77,78 @@ class Posts_Widget extends WP_Widget {
      * @param array $instance   [Required] Automatically passed by WordPress - Current saved data for the widget options.
      * @return void 
      */
-    public function widget( $args, $instance ){
+    public function widget($args, $instance) {
         extract($args);
         extract($instance);
+
+        //echo $before_title . $title . $after_title;
         
-        echo $before_title . $bp_title . $after_title;
+        $query = array();
         
-        ?>
-            <h3><?php echo $bp_string; ?></h3>
-                
-            <?php if($bp_checkbox) { ?>
-                <p>Check box '<?php echo $bp_checkbox; ?>' was checked</p>
-            <?php } ?>
+        //@todo : should be a loop going through all available post types
+        $query['post_type'] = array(
+            ($instance['include_posts']) ? 'post' : $post_types,
+            ($instance['include_questions']) ? 'questions' : $post_types,
+            ($instance['include_guides']) ? 'guides' : $post_types,
+        );
+        
+        $query['limit'] = $instance['limit'];
+        
+        $filter = $instance['filter-by'];
+        
+        if($filter == 'automatic'){
+            $cat = get_query_var('cat');
+            if(!empty($cat)){
+                $filter == 'category';
+                $instance['category'] = '_automatic';
+            }
+            $user = get_query_var('user');
+            if(!empty($user)){
+                $filter == 'author';
+                $instance['author'] = '_automatic';
+            }
+        }
+        
+        
+        if($filter == 'category'){
+            $category = $instance['category'];
             
-            <?php if($bp_checkbox_2) { ?>
-                <p>Check box '<?php echo $bp_checkbox_2; ?>' was checked</p>
-            <?php } ?>
+            if($category == '_automatic'){
+                $query['category']= get_query_var('cat');
+            }
             
-            <p>The chosen select option is:<?php echo $bp_select; ?></p>
-            <p><?php echo $bp_textarea; ?></p>
-        <?
+            if(isset($instance['subcategory'])){
+                $query['category'] = $instance['subcategory'];
+            }
+        }
         
+        
+        if($filter == 'author'){
+            $author['author'] = $instance['author'];
+            if($author == '_automatic'){
+                $author['author'] = get_query_var('user');
+            }
+        }
+        
+        if($filter == 'manual'){
+            $query['posts__in'] = $instance['posts__in'];
+        }
+
+        $widget_posts = new WP_Query(array(
+            'limit'     => $limit,
+            'post_type' => $post_types
+          ));
+        
+        if (have_posts()) {
+            while (have_posts()) {
+
+                the_post();
+
+                get_template_part('parts/widgets/post');
+            }
+        }
     }
-    
+
     /**
      * Data validation. 
      * 
@@ -166,40 +215,8 @@ class Posts_Widget extends WP_Widget {
         
         /* Merge saved input values with default values */
         $instance = wp_parse_args((array) $instance, $defaults);
-        
-        $fields = array();
-        
-        ?><p><strong>Genreal Options:</strong></p><?php
-        
-        if($instance['show_title']) {
-            $fields[] = array(
-                'field_id' => 'display_title',
-                'type' => 'text',
-                'label' => 'Title'
-            );
-        }
-        
-        if($instance['show_subtitle']) {
-            $fields[] = array(
-                'field_id' => 'sub_title',
-                'type' => 'text',
-                'label' => 'Sub-Title'
-            );
-        }
-
-        if($instance['show_share']) {
-            $fields[] =  array(
-                'field_id' => 'share_style',
-                'type' => 'select',
-                'label' => 'Share Tools Style',
-                'options' => array(
-                    'footer' => 'Footer Bar',
-                    'flyout' => 'Flyout'
-                )
-            );
-        }
-        $this->form_fields($fields, $instance);
-        
+       
+        $this->form_field('title', 'text', 'Widget Label (shows on admin only)', $instance);
         
         ?><p><strong>Query Options:</strong></p><?php
         
@@ -213,6 +230,78 @@ class Posts_Widget extends WP_Widget {
         );
         
         $this->form_fields($limit, $instance);
+                
+        $query_options = array(
+            array(
+                'field_id' => 'filter-by',
+                'type' => 'select',
+                'label' => 'Filter By (save to update)',
+                'options' => array (
+                    'automatic' => 'Automatic',
+                    'category' => 'Category',
+                    'author' => 'Author',
+                    'manual' => 'Manual'
+                )
+            )
+        );
+        
+        if($instance['filter-by'] == 'category') {
+            
+            $categories = get_categories(array('parent' => 0, 'hide_empty' => false, 'hierarchical' => true));
+            foreach($categories as $cat){
+                $cats[$cat->term_id] = $cat->name; 
+            }
+            
+            $query_options[] = array(
+                'field_id' => 'category',
+                'type' => 'select',
+                'label' => 'Category',
+                'options' => $cats 
+            );
+            
+            if($instance['category']){
+                $categories = get_categories(array('parent' => $instance['category'], 'hide_empty' => false, 'hierarchical' => true));
+                foreach($categories as $cat){
+                    $subcats[$cat->term_id] = $cat->name; 
+                }
+                if(!empty($subcats)){
+                    $all = array($instance['category'] => 'All');
+                    $query_options[] = array(
+                        'field_id' => 'subcategory',
+                        'type' => 'select',
+                        'label' => 'Subcategory',
+                        'options' => array_merge($all, $subcats)
+                    );
+                }
+            }
+        }
+        
+        if($instance['filter-by'] == 'author'){
+            $authors = get_users();
+            foreach($authors as $author){
+                $users[$author->ID] = $author->user_nicename;
+            }
+            if(!empty($users)){
+                $query_options[] = array(
+                    'field_id' => 'author',
+                    'type' => 'select',
+                    'label' => 'Author',
+                    'options' => $users
+                );
+            }
+        }
+        
+       if ($instance['filter-by'] == 'manual') {
+            for ($i = 0; $i < $instance['limit']+1; $i++) {
+                $query_options[] = array(
+                    'field_id' => 'posts__in',
+                    'type' => 'text',
+                    'label' => "Post ID #" . ($i+1),
+                );
+            }
+        }
+        
+        $this->form_fields($query_options, $instance);
         
         ?><label>Include:</label><?php
         $query_options = array(
@@ -234,10 +323,6 @@ class Posts_Widget extends WP_Widget {
         );
         
         $this->form_fields($query_options, $instance, true);
-                
-        
-        
-        
         
         ?><p><strong>Display Options:</strong></p><?php
         
@@ -291,10 +376,40 @@ class Posts_Widget extends WP_Widget {
         
         $this->form_fields($show_options, $instance, true);
 
-        
-        $this->form_field('title', 'text', 'Widget Label (shows on admin only)', $instance);
 
+
+        $fields = array();
         
+        ?><p><strong>Genreal Options:</strong></p><?php
+        
+        if($instance['show_title']) {
+            $fields[] = array(
+                'field_id' => 'title_text',
+                'type' => 'text',
+                'label' => 'Title'
+            );
+        }
+        
+        if($instance['show_subtitle']) {
+            $fields[] = array(
+                'field_id' => 'subtitle_text',
+                'type' => 'text',
+                'label' => 'Sub-Title'
+            );
+        }
+
+        if($instance['show_share']) {
+            $fields[] =  array(
+                'field_id' => 'share_style',
+                'type' => 'select',
+                'label' => 'Share Tools Style',
+                'options' => array(
+                    'footer' => 'Footer Bar',
+                    'flyout' => 'Flyout'
+                )
+            );
+        }
+        $this->form_fields($fields, $instance);
         
 //        $fields = array(
 //            array(
