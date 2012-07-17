@@ -102,7 +102,7 @@ class Posts_Widget extends WP_Widget {
                 $filter == 'category';
                 $instance['category'] = '_automatic';
             }
-            $user = get_query_var('user');
+            $user = get_query_var('author');
             if(!empty($user)){
                 $filter == 'author';
                 $instance['author'] = '_automatic';
@@ -124,9 +124,9 @@ class Posts_Widget extends WP_Widget {
         
         
         if($filter == 'author'){
-            $author['author'] = $instance['author'];
+            $query['author'] = $instance['author'];
             if($author == '_automatic'){
-                $author['author'] = get_query_var('user');
+                $query['author'] = get_query_var('author');
             }
         }
         
@@ -134,21 +134,74 @@ class Posts_Widget extends WP_Widget {
             $query['posts__in'] = $instance['posts__in'];
         }
 
-        $widget_posts = new WP_Query(array(
-            'limit'     => $limit,
-            'post_type' => $post_types
-          ));
+        $posts = new WP_Query($query);
         
-        if (have_posts()) {
-            while (have_posts()) {
-
-                the_post();
-
-                get_template_part('parts/widgets/post');
-            }
-        }
+//        if (have_posts()) {
+//            while (have_posts()) {
+//
+//                the_post();
+//                $this->get_template($instance, $query);
+//                get_template_part('parts/widgets/widget.php');
+//            }
+//        }
+        //print_pre($posts);
+        include( $this->get_template($instance, $posts) );
+        
+        wp_reset_query();
     }
 
+    /**
+     *
+     * @param type $instance
+     * @param type $query 
+     */
+    function get_template($instance, $query){
+        $queried_object = get_queried_object();
+        
+        $templates = array();
+        if($query->is_category()){
+            $templates[] = "widget-category-{$queried_object->slug}.php";
+            $templates[] = "widget-category-{$queried_object->id}.php";
+            $templates[] = "widget-category.php"; 
+        }
+        
+       if($query->is_author()){
+            $templates[] = "widget-author-{$queried_object->nicename}.php";
+            $templates[] = "widget-author-{$queried_object->id}.php";
+            $templates[] = "widget-author.php";   
+        }
+        
+        if($query->is_archive()){
+            $templates[] = "widget-archive.php";  
+            $templates[] = "widget-index.php"; 
+        }
+        
+        $templates[] = 'widget.php';
+        
+        
+        if($query->is_category()){
+            $templates[] = "category-{$queried_object->slug}.php";
+            $templates[] = "category-{$queried_object->id}.php";
+            $templates[] = "category.php"; 
+        }
+
+       if($query->is_author()){
+            $templates[] = "author-{$queried_object->nicename}.php";
+            $templates[] = "author-{$queried_object->id}.php";
+            $templates[] = "author.php";   
+        }
+        
+        if($query->is_archive()){
+            $templates[] = "archive.php"; 
+            $templates[] = "index.php"; 
+        }
+        
+        print_pre($templates);
+        return get_query_template('widget', $templates);
+       
+    }
+    
+    
     /**
      * Data validation. 
      * 
@@ -225,7 +278,7 @@ class Posts_Widget extends WP_Widget {
                 'field_id' => 'limit',
                 'type' => 'select',
                 'label' => 'Number of posts',
-                'options' => range(1, 10)
+                'options' => range(0, 10)
             )
         );
         
@@ -270,9 +323,9 @@ class Posts_Widget extends WP_Widget {
                         'field_id' => 'subcategory',
                         'type' => 'select',
                         'label' => 'Subcategory',
-                        'options' => array_merge($all, $subcats)
+                        'options' => $all + $subcats
                     );
-                }
+                } else unset($instance['subcategory']);
             }
         }
         
