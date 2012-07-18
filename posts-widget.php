@@ -156,49 +156,55 @@ class Posts_Widget extends WP_Widget {
      */
     function get_template($instance, $query) {
 
-        $queried_object = $query->get_queried_object();
+        $object = $query->get_queried_object();
         
-        $directories = apply_filters('widget_template_dirs', array('widget/posts-widget-','widgets/'));
+        $directories = apply_filters('widget_template_dirs', array('widget/posts-widget/','widgets/'));
         array_push($directories, '');
         
         $templates = array();
  
         foreach((array)$directories as $dir){
  
-            if ($query->is_tax()) {
-                $templates[] = "{$dir}taxonomy-{$queried_object->taxonomy}-{$queried_object->slug}.php";
-                $templates[] = "{$dir}taxonomy-{$queried_object->taxonomy}-{$queried_object->term_id}.php";
-                $templates[] = "{$dir}taxonomy-{$queried_object->taxonomy}.php";
-                $templates[] = "{$dir}taxonomy.php";
-            }
-  
-            if ($query->is_category()) {
-                $templates[] = "{$dir}category-{$queried_object->slug}.php";
-                $templates[] = "{$dir}category-{$queried_object->term_id}.php";
-                $templates[] = "{$dir}category.php";
-            }
-            
-            if ($query->is_tag()) {
-                $templates[] = "{$dir}tag-{$queried_object->slug}.php";
-                $templates[] = "{$dir}tag-{$queried_object->term_id}.php";
-                $templates[] = "{$dir}tag.php";
-            }
-            
-            if ($query->is_author()) {
-                $role = get_userdata($queried_object->ID)->roles[0];
-                
-                $templates[] = "{$dir}author-{$queried_object->user_nicename}.php";
-                $templates[] = "{$dir}author-{$queried_object->ID}.php";
-                $templates[] = "{$dir}author-{$role}.php";
-                $templates[] = "{$dir}author.php";
-            }
-            
-            if ($query->is_archive()) {
+            if($query->is_archive()){
+                if ($query->is_tax()) {
+                    $templates[] = "{$dir}taxonomy-{$object->taxonomy}-{$object->slug}.php";
+                    $templates[] = "{$dir}taxonomy-{$object->taxonomy}-{$object->term_id}.php";
+                    $templates[] = "{$dir}taxonomy-{$object->taxonomy}.php";
+                    $templates[] = "{$dir}taxonomy.php";
+                }
+
+                if ($query->is_category()) {
+                    $templates[] = "{$dir}category-{$object->slug}.php";
+                    $templates[] = "{$dir}category-{$object->term_id}.php";
+                    $templates[] = "{$dir}category.php";
+                }
+
+                if ($query->is_tag()) {
+                    $templates[] = "{$dir}tag-{$object->slug}.php";
+                    $templates[] = "{$dir}tag-{$object->term_id}.php";
+                    $templates[] = "{$dir}tag.php";
+                }
+
+                if ($query->is_author()) {
+                    $role = get_userdata($object->ID)->roles[0];
+
+                    $templates[] = "{$dir}author-{$object->user_nicename}.php";
+                    $templates[] = "{$dir}author-{$object->ID}.php";
+                    $templates[] = "{$dir}author-{$role}.php";
+                    $templates[] = "{$dir}author.php";
+                }
+
                 $templates[] = "{$dir}archive.php";
             }
             
-            $templates[] = "{$dir}index.php";
+            if($query->is_single()){
+                $templates = "{$dir}single-{$object->post_type}-{$object->slug}.php";
+                $templates = "{$dir}single-{$object->post_type}-{$object->ID}.php";
+                $templates = "{$dir}single-{$object->post_type}.php";
+                $templates = "{$dir}single.php";
+            }
             
+            $templates[] = "{$dir}index.php";
         }
        // print_pre($templates);
         return get_query_template('widget', $templates);
@@ -425,6 +431,20 @@ class Posts_Widget extends WP_Widget {
         
         ?><p><strong>Display Options:</strong></p><?php
         
+        $show_options = array(
+            array(
+                'field_id' => 'style',
+                'type'      => 'select',
+                'label' =>  'Select a Template Style',
+                'options' => array(
+                    'general'  => 'General',
+                    'featured' => 'Featured'
+                )
+            )
+        );
+        $this->form_fields($show_options, $instance);
+        
+        ?><p><label>Show:</label></p><?php
         
         $show_options = array(
             array(
@@ -474,19 +494,6 @@ class Posts_Widget extends WP_Widget {
 
         $this->form_fields($show_options, $instance, true);
         
-        $show_options = array(
-            array(
-                'field_id' => 'style',
-                'type' => 'select',
-                'label' => 'Layout Style',
-                'options' => array(
-                    'normal' => 'Normal',
-                    'featured' => 'Featured'
-                )
-            )
-        );
-        
-        $this->form_fields($show_options, $instance, true);
 
 
         
