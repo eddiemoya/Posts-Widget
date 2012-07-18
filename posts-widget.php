@@ -1,7 +1,7 @@
 <?php /*
 Plugin Name: Posts Widget
 Description: Starting point for building widgets quickly and easier
-Version: 0.1
+Version: 0.3
 Author: Eddie Moya
 Author URI: http://eddiemoya.com/
  */
@@ -83,15 +83,16 @@ class Posts_Widget extends WP_Widget {
 
         //echo $before_title . $title . $after_title;
         
-        $query = array();
+        $query['is_widget'] = $instance;
         
         //@todo : should be a loop going through all available post types
-        $query['post_type'] = array(
-            ($instance['include_posts']) ? 'post' : $post_types,
-            ($instance['include_questions']) ? 'questions' : $post_types,
-            ($instance['include_guides']) ? 'guides' : $post_types,
-        );
-        
+        $post_types = array('post', 'guides', 'question');
+        foreach ($post_types as $post_type) {
+            if ($instance['include_' . $post_type]) {
+                $query['post_type'][] = $post_type;
+            }
+        }
+
         $query['limit'] = $instance['limit'];
         
         $filter = $instance['filter-by'];
@@ -111,14 +112,14 @@ class Posts_Widget extends WP_Widget {
         
         
         if($filter == 'category'){
-            $category = $instance['category'];
+            $query['cat'] = $instance['category'];
             
-            if($category == '_automatic'){
-                $query['category']= get_query_var('cat');
+            if($query['cat'] == '_automatic'){
+                $query['cat']= get_query_var('cat');
             }
             
             if(isset($instance['subcategory'])){
-                $query['category'] = $instance['subcategory'];
+                $query['cat'] = $instance['subcategory'];
             }
         }
         
@@ -129,24 +130,22 @@ class Posts_Widget extends WP_Widget {
                 $query['author'] = get_query_var('author');
             }
         }
-        
-        if($filter == 'manual'){
-            $query['posts__in'] = $instance['posts__in'];
+
+        if ($filter == 'manual') {
+            for ($i = 1; $i < $instance['limit'] + 1; $i++) {
+                $query['post__in'][] = $instance['post__in_' . ($i)];
+            }
         }
 
-        $posts = new WP_Query($query);
-        
-//        if (have_posts()) {
-//            while (have_posts()) {
-//
-//                the_post();
-//                $this->get_template($instance, $query);
-//                get_template_part('parts/widgets/widget.php');
-//            }
-//        }
-        //print_pre($posts);
-        include( $this->get_template($instance, $posts) );
-        
+        global $wp_query;
+        query_posts($query);
+
+
+        $template = $this->get_template($instance, $wp_query);
+        //echo "template:" . $template;
+    
+        include($template);
+
         wp_reset_query();
     }
 
@@ -155,53 +154,56 @@ class Posts_Widget extends WP_Widget {
      * @param type $instance
      * @param type $query 
      */
-    function get_template($instance, $query){
-        $queried_object = get_queried_object();
+    function get_template($instance, $query) {
+
+        $queried_object = $query->get_queried_object();
+        
+        $directories = apply_filters('widget_template_dirs', array('widget/posts-widget-','widgets/'));
+        array_push($directories, '');
         
         $templates = array();
-        if($query->is_category()){
-            $templates[] = "widget-category-{$queried_object->slug}.php";
-            $templates[] = "widget-category-{$queried_object->id}.php";
-            $templates[] = "widget-category.php"; 
+ 
+        foreach((array)$directories as $dir){
+ 
+            if ($query->is_tax()) {
+                $templates[] = "{$dir}taxonomy-{$queried_object->taxonomy}-{$queried_object->slug}.php";
+                $templates[] = "{$dir}taxonomy-{$queried_object->taxonomy}-{$queried_object->term_id}.php";
+                $templates[] = "{$dir}taxonomy-{$queried_object->taxonomy}.php";
+                $templates[] = "{$dir}taxonomy.php";
+            }
+  
+            if ($query->is_category()) {
+                $templates[] = "{$dir}category-{$queried_object->slug}.php";
+                $templates[] = "{$dir}category-{$queried_object->term_id}.php";
+                $templates[] = "{$dir}category.php";
+            }
+            
+            if ($query->is_tag()) {
+                $templates[] = "{$dir}tag-{$queried_object->slug}.php";
+                $templates[] = "{$dir}tag-{$queried_object->term_id}.php";
+                $templates[] = "{$dir}tag.php";
+            }
+            
+            if ($query->is_author()) {
+                $role = get_userdata($queried_object->ID)->roles[0];
+                
+                $templates[] = "{$dir}author-{$queried_object->user_nicename}.php";
+                $templates[] = "{$dir}author-{$queried_object->ID}.php";
+                $templates[] = "{$dir}author-{$role}.php";
+                $templates[] = "{$dir}author.php";
+            }
+            
+            if ($query->is_archive()) {
+                $templates[] = "{$dir}archive.php";
+            }
+            
+            $templates[] = "{$dir}index.php";
+            
         }
-        
-       if($query->is_author()){
-            $templates[] = "widget-author-{$queried_object->nicename}.php";
-            $templates[] = "widget-author-{$queried_object->id}.php";
-            $templates[] = "widget-author.php";   
-        }
-        
-        if($query->is_archive()){
-            $templates[] = "widget-archive.php";  
-            $templates[] = "widget-index.php"; 
-        }
-        
-        $templates[] = 'widget.php';
-        
-        
-        if($query->is_category()){
-            $templates[] = "category-{$queried_object->slug}.php";
-            $templates[] = "category-{$queried_object->id}.php";
-            $templates[] = "category.php"; 
-        }
-
-       if($query->is_author()){
-            $templates[] = "author-{$queried_object->nicename}.php";
-            $templates[] = "author-{$queried_object->id}.php";
-            $templates[] = "author.php";   
-        }
-        
-        if($query->is_archive()){
-            $templates[] = "archive.php"; 
-            $templates[] = "index.php"; 
-        }
-        
-        print_pre($templates);
+       // print_pre($templates);
         return get_query_template('widget', $templates);
-       
     }
-    
-    
+
     /**
      * Data validation. 
      * 
@@ -220,8 +222,6 @@ class Posts_Widget extends WP_Widget {
         /* Lets inherit the existing settings */
         $instance = $old_instance;
         
-        
-        
         /**
          * Sanitize each option - be careful, if not all simple text fields,
          * then make use of other WordPress sanitization functions, but also
@@ -235,12 +235,11 @@ class Posts_Widget extends WP_Widget {
             
         }
         
-        
+        //Handle unchecked checkboxes
         foreach($instance as $key => $value){
             if($value == 'on' && !isset($new_instance[$key])){
-                unset($instance[$key]);
+                $instance[$key] = false;
             }
-
         }
         
         return $instance;
@@ -264,12 +263,59 @@ class Posts_Widget extends WP_Widget {
     public function form($instance){
         
         /* Setup default values for form fields - associtive array, keys are the field_id's */
-        $defaults = array('title' => '', 'style' => 'general');
+        $defaults = array(
+            'title' => '', 
+            'style' => 'normal',
+            'limit' => 3,
+            'filter-by' => 'automatic',
+            'show_title' => 'on',
+            'show_subtitle' => 'on',
+            'show_category' => 'on',
+            'show_content' => 'on',
+            'show_comment_count' => 'on',
+            'show_share' => 'on',
+            'share_style' => 'footer'
+            );
         
         /* Merge saved input values with default values */
-        $instance = wp_parse_args((array) $instance, $defaults);
+        $instance = wp_parse_args($instance, $defaults);
        
         $this->form_field('title', 'text', 'Widget Label (shows on admin only)', $instance);
+        
+        $fields = array();
+        
+        ?><p><strong>Genreal Options:</strong></p><?php        
+ 
+        if($instance['show_title']) {
+            $fields[] = array(
+                'field_id' => 'title_text',
+                'type' => 'text',
+                'label' => 'Title'
+            );
+        }
+        
+        if($instance['show_subtitle']) {
+            $fields[] = array(
+                'field_id' => 'subtitle_text',
+                'type' => 'text',
+                'label' => 'Sub-Title'
+            );
+        }
+        
+       
+        if($instance['share_style']) {
+            $fields[] =  array(
+                'field_id' => 'share_style',
+                'type' => 'select',
+                'label' => 'Share Tools Style',
+                'options' => array(
+                    'footer' => 'Footer Bar',
+                    'flyout' => 'Flyout'
+                )
+            );
+        }
+        
+        $this->form_fields($fields, $instance);
         
         ?><p><strong>Query Options:</strong></p><?php
         
@@ -345,11 +391,11 @@ class Posts_Widget extends WP_Widget {
         }
         
        if ($instance['filter-by'] == 'manual') {
-            for ($i = 0; $i < $instance['limit']+1; $i++) {
+            for ($i = 1; $i < $instance['limit']+1; $i++) {
                 $query_options[] = array(
-                    'field_id' => 'posts__in',
+                    'field_id' => "post__in_" . ($i),
                     'type' => 'text',
-                    'label' => "Post ID #" . ($i+1),
+                    'label' => "Post ID #" . ($i),
                 );
             }
         }
@@ -359,17 +405,17 @@ class Posts_Widget extends WP_Widget {
         ?><label>Include:</label><?php
         $query_options = array(
             array(
-                'field_id' => 'include_posts',
+                'field_id' => 'include_post',
                 'type' => 'checkbox',
                 'label' => 'Blog Posts'
             ),
             array(
-                'field_id' => 'include_questions',
+                'field_id' => 'include_question',
                 'type' => 'checkbox',
                 'label' => 'Questions'
             ),
             array(
-                'field_id' => 'include_guides',
+                'field_id' => 'include_guide',
                 'type' => 'checkbox',
                 'label' => 'Articles'
             ),
@@ -425,44 +471,24 @@ class Posts_Widget extends WP_Widget {
                 'label' => 'Share Icons'
             ),
         );
+
+        $this->form_fields($show_options, $instance, true);
         
+        $show_options = array(
+            array(
+                'field_id' => 'style',
+                'type' => 'select',
+                'label' => 'Layout Style',
+                'options' => array(
+                    'normal' => 'Normal',
+                    'featured' => 'Featured'
+                )
+            )
+        );
         
         $this->form_fields($show_options, $instance, true);
 
 
-
-        $fields = array();
-        
-        ?><p><strong>Genreal Options:</strong></p><?php
-        
-        if($instance['show_title']) {
-            $fields[] = array(
-                'field_id' => 'title_text',
-                'type' => 'text',
-                'label' => 'Title'
-            );
-        }
-        
-        if($instance['show_subtitle']) {
-            $fields[] = array(
-                'field_id' => 'subtitle_text',
-                'type' => 'text',
-                'label' => 'Sub-Title'
-            );
-        }
-
-        if($instance['show_share']) {
-            $fields[] =  array(
-                'field_id' => 'share_style',
-                'type' => 'select',
-                'label' => 'Share Tools Style',
-                'options' => array(
-                    'footer' => 'Footer Bar',
-                    'flyout' => 'Flyout'
-                )
-            );
-        }
-        $this->form_fields($fields, $instance);
         
 //        $fields = array(
 //            array(
@@ -606,3 +632,10 @@ class Posts_Widget extends WP_Widget {
 }
 
 Posts_Widget::register_widget();
+
+function is_widget(){
+    global $wp_query;
+    $is_widget = (isset($wp_query->query_vars['is_widget'])) ? (object)$wp_query->query_vars['is_widget'] : false;
+
+    return $is_widget;
+}
