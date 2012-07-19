@@ -1,7 +1,7 @@
 <?php /*
 Plugin Name: Posts Widget
 Description: Starting point for building widgets quickly and easier
-Version: 0.3
+Version: 0.4
 Author: Eddie Moya
 Author URI: http://eddiemoya.com/
  */
@@ -78,11 +78,28 @@ class Posts_Widget extends WP_Widget {
      * @return void 
      */
     public function widget($args, $instance) {
+        global $wp_query;
         extract($args);
-        extract($instance);
-
-        //echo $before_title . $title . $after_title;
         
+        query_posts($this->query($instance));
+
+        $template = $this->get_template($instance);
+
+        $before_widget = $this->add_class($before_widget, $instance['span']);
+        
+        echo $before_widget;
+        include($template);
+        echo $after_widget;
+
+        wp_reset_query();
+    }
+    
+    /**
+     *
+     * @param type $instance
+     * @return string 
+     */
+    function query($instance){
         $query['is_widget'] = $instance;
         
         //@todo : should be a loop going through all available post types
@@ -136,80 +153,146 @@ class Posts_Widget extends WP_Widget {
                 $query['post__in'][] = $instance['post__in_' . ($i)];
             }
         }
-
-        global $wp_query;
-        query_posts($query);
-
-
-        $template = $this->get_template($instance, $wp_query);
-        //echo "template:" . $template;
-    
-        include($template);
-
-        wp_reset_query();
+        return $query;
     }
 
+    /**
+     *
+     * @param type $tag
+     * @param type $class
+     * @return type 
+     */
+    function add_class($tag, $class) {
+        
+        $dom = new DOMDocument();
+        @$dom->loadHTML($tag);
+        $x = new DOMXPath($dom);
+
+        foreach ($x->query("//div") as $node) {
+            $classes = $node->getAttribute("class"). ' ' . $class;
+            $node->setAttribute('class', $classes);
+        }
+        
+        return $dom->saveHtml();
+    }
     /**
      *
      * @param type $instance
      * @param type $query 
      */
-    function get_template($instance, $query) {
-
-        $object = $query->get_queried_object();
+    function get_template($instance) {
+        global $wp_query;
+        $object = get_queried_object();
+        
+        if (is_author()) {
+            $role = get_userdata($object->ID)->roles[0];
+        }
         
         $directories = apply_filters('widget_template_dirs', array('widget/posts-widget/','widgets/'));
         array_push($directories, '');
-        
+
         $templates = array();
- 
-        foreach((array)$directories as $dir){
- 
-            if($query->is_archive()){
-                if ($query->is_tax()) {
-                    $templates[] = "{$dir}taxonomy-{$object->taxonomy}-{$object->slug}.php";
-                    $templates[] = "{$dir}taxonomy-{$object->taxonomy}-{$object->term_id}.php";
-                    $templates[] = "{$dir}taxonomy-{$object->taxonomy}.php";
-                    $templates[] = "{$dir}taxonomy.php";
-                }
 
-                if ($query->is_category()) {
-                    $templates[] = "{$dir}category-{$object->slug}.php";
-                    $templates[] = "{$dir}category-{$object->term_id}.php";
-                    $templates[] = "{$dir}category.php";
-                }
+        if (is_archive()) {
+            
+            if (is_tax()) { 
+                $tax_templates = array(
+                    "taxonomy-{$object->taxonomy}-{$object->slug}.php",
+                    "taxonomy-{$object->taxonomy}-{$object->term_id}.php",
+                    "taxonomy-{$object->taxonomy}.php",
+                    "taxonomy.php"
+                );
+            }
 
-                if ($query->is_tag()) {
-                    $templates[] = "{$dir}tag-{$object->slug}.php";
-                    $templates[] = "{$dir}tag-{$object->term_id}.php";
-                    $templates[] = "{$dir}tag.php";
-                }
+            if (is_category()) {
+                $cat_templates = array(
+                    "category-{$object->slug}.php",
+                    "category-{$object->term_id}.php",
+                    "category.php"
+                );
+            }
 
-                if ($query->is_author()) {
-                    $role = get_userdata($object->ID)->roles[0];
+            if (is_tag()) {
+                $tag_templates = array(
+                    "tag-{$object->slug}.php",
+                    "tag-{$object->term_id}.php",
+                    "tag.php"
+                );
+            }
 
-                    $templates[] = "{$dir}author-{$object->user_nicename}.php";
-                    $templates[] = "{$dir}author-{$object->ID}.php";
-                    $templates[] = "{$dir}author-{$role}.php";
-                    $templates[] = "{$dir}author.php";
-                }
-
-                $templates[] = "{$dir}archive.php";
+            if (is_author()) {
+                $author_templates = array(
+                    "author-{$object->user_nicename}.php",
+                    "author-{$object->ID}.php",
+                    "author-{$role}.php",
+                    "author.php",
+                );
             }
             
-            if($query->is_single()){
-                $templates = "{$dir}single-{$object->post_type}-{$object->slug}.php";
-                $templates = "{$dir}single-{$object->post_type}-{$object->ID}.php";
-                $templates = "{$dir}single-{$object->post_type}.php";
-                $templates = "{$dir}single.php";
-            }
             
-            $templates[] = "{$dir}index.php";
+            $archive_templates = "archive.php";
+      
         }
-       // print_pre($templates);
+
+        if (is_single()) {
+            $single_templates = array(
+                "single-{$object->post_type}-{$object->slug}.php",
+                "single-{$object->post_type}-{$object->ID}.php",
+                "single-{$object->post_type}.php",
+                "single.php"
+            );
+        }
+
+
+        $index_templates = "index.php";
+        
+        
+        $templates = array_merge(
+                $templates, 
+                $this->template_set($tax_templates, $directories),
+                $this->template_set($cat_templates, $directories),
+                $this->template_set($tag_templates, $directories),
+                $this->template_set($author_templates, $directories),
+                $this->template_set($archive_templates, $directories),
+                $this->template_set($single_templates, $directories),
+                $this->template_set($index_templates, $directories)
+                );
+
+        print_pre($templates);
         return get_query_template('widget', $templates);
     }
+    
+    /**
+     *
+     * @param type $templates
+     * @param type $dirs
+     * @return type 
+     */
+    function template_set($templates, $dirs){
+        $set = array();
+        foreach((array)$templates as $template){
+            foreach($dirs as $dir){
+                $set[] = $dir.$template;
+            }
+        }
+        return $set;
+    }
 
+    /**
+     *
+     * @param type $template
+     * @param type $dirs
+     * @return string 
+     */
+    function dirs($template, $dirs = array('')){
+        $templates = array();
+        foreach((array)$dirs as $dir){
+            $templates[] = $dir . $template;
+        }
+        
+        return $templates;
+        
+    }
     /**
      * Data validation. 
      * 
@@ -243,8 +326,11 @@ class Posts_Widget extends WP_Widget {
         
         //Handle unchecked checkboxes
         foreach($instance as $key => $value){
-            if($value == 'on' && !isset($new_instance[$key])){
+            if($value && !isset($new_instance[$key])){
                 $instance[$key] = false;
+            }
+            if($value && !isset($new_instance[$key])){
+                //unset($instance[$key]);
             }
         }
         
@@ -294,7 +380,7 @@ class Posts_Widget extends WP_Widget {
  
         if($instance['show_title']) {
             $fields[] = array(
-                'field_id' => 'title_text',
+                'field_id' => 'widget_title',
                 'type' => 'text',
                 'label' => 'Title'
             );
@@ -302,7 +388,7 @@ class Posts_Widget extends WP_Widget {
         
         if($instance['show_subtitle']) {
             $fields[] = array(
-                'field_id' => 'subtitle_text',
+                'field_id' => 'widget_subtitle',
                 'type' => 'text',
                 'label' => 'Sub-Title'
             );
@@ -440,7 +526,20 @@ class Posts_Widget extends WP_Widget {
                     'general'  => 'General',
                     'featured' => 'Featured'
                 )
-            )
+            ),
+            array(
+                'field_id' => 'span',
+                'type'      => 'select',
+                'label' =>  'Widget Width',
+                'options' => array(
+                    'span3' =>  '25%',
+                    'span4'  => '33%',
+                    'span6' => '50%',
+                    'span8' => '66%',
+                    'span12' => '100%'
+                )
+            ),
+            
         );
         $this->form_fields($show_options, $instance);
         
@@ -490,42 +589,14 @@ class Posts_Widget extends WP_Widget {
                 'type' => 'checkbox',
                 'label' => 'Share Icons'
             ),
+            array(
+                'field_id' => 'show_thumbnail',
+                'type' => 'checkbox',
+                'label' => 'Featured Image'
+            ),
         );
 
         $this->form_fields($show_options, $instance, true);
-        
-
-
-        
-//        $fields = array(
-//            array(
-//                'field_id' => 'title',
-//                'type' => 'text',
-//                'label' => 'Enter Title (leave empty for no title)'
-//            ),
-//            array(
-//                'field_id' => 'style',
-//                'type' => 'select',
-//                'label' => 'Select a Style',
-//                'options' => array(
-//                    'general' => 'General',
-//                    'featured' => 'Featured'
-//                )
-//            )
-//        );
-
- 
-
-
-        /* Builds a series of inputs based on the $fields array created above. */
-        
-        
-        /* Examples of input fields one at a time. */
-//        
-//        $this->form_field('checkbox', 'checkbox', 'Choice 1', $instance);
-//        $this->form_field('checkbox_2', 'checkbox', 'Choice 2', $instance);
-//        $this->form_field('textarea', 'textarea', 'Enter Lots of Text', $instance);
-//        $this->form_field('checkbox_3', 'checkbox', 'Choice 3', $instance);
     }
     
 
@@ -646,3 +717,42 @@ function is_widget(){
 
     return $is_widget;
 }
+
+
+/**
+ * Add "first" and "last" CSS classes to dynamic sidebar widgets. Also adds numeric index class for each widget (widget-1, widget-2, etc.)
+ */
+function widget_first_last_classes($params) {
+
+	global $my_widget_num; // Global a counter array
+	$this_id = $params[0]['id']; // Get the id for the current sidebar we're processing
+	$arr_registered_widgets = wp_get_sidebars_widgets(); // Get an array of ALL registered widgets	
+
+	if(!$my_widget_num) {// If the counter array doesn't exist, create it
+		$my_widget_num = array();
+	}
+
+	if(!isset($arr_registered_widgets[$this_id]) || !is_array($arr_registered_widgets[$this_id])) { // Check if the current sidebar has no widgets
+		return $params; // No widgets in this sidebar... bail early.
+	}
+
+	if(isset($my_widget_num[$this_id])) { // See if the counter array has an entry for this sidebar
+		$my_widget_num[$this_id] ++;
+	} else { // If not, create it starting with 1
+		$my_widget_num[$this_id] = 1;
+	}
+
+	$class = 'class="widget-' . $my_widget_num[$this_id] . ' '; // Add a widget number class for additional styling options
+
+	if($my_widget_num[$this_id] == 1) { // If this is the first widget
+		$class .= 'widget-first ';
+	} elseif($my_widget_num[$this_id] == count($arr_registered_widgets[$this_id])) { // If this is the last widget
+		$class .= 'widget-last ';
+	}
+
+	$params[0]['before_widget'] = str_replace('class="', $class, $params[0]['before_widget']); // Insert our new classes into "before widget"
+
+	return $params;
+
+}
+add_filter('dynamic_sidebar_params','widget_first_last_classes');
