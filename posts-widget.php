@@ -86,7 +86,7 @@ class Posts_Widget extends WP_Widget {
         $template = $this->get_template($instance);
 
         $before_widget = $this->add_class($before_widget, $instance['span']);
-
+        echo "<!--{$template} -->";
         echo $before_widget;
         include($template);
         echo $after_widget;
@@ -110,7 +110,7 @@ class Posts_Widget extends WP_Widget {
             }
         }
 
-        $query['limit'] = $instance['limit'];
+        $query['posts_per_page'] = $instance['limit'];
         
         $filter = $instance['filter-by'];
         
@@ -315,14 +315,15 @@ class Posts_Widget extends WP_Widget {
             
         }
         
+        if($value && !isset($new_instance[$key])){
+            unset($instance[$key]);
+        }
         //Handle unchecked checkboxes
         foreach($instance as $key => $value){
             if($value && !isset($new_instance[$key])){
                 $instance[$key] = false;
             }
-            if($value && !isset($new_instance[$key])){
-                //unset($instance[$key]);
-            }
+
         }
         
         return $instance;
@@ -527,6 +528,7 @@ class Posts_Widget extends WP_Widget {
                     'span4'  => '33%',
                     'span6' => '50%',
                     'span8' => '66%',
+                    'span9' => '75%',
                     'span12' => '100%'
                 )
             ),
@@ -587,6 +589,14 @@ class Posts_Widget extends WP_Widget {
             ),
         );
 
+        $this->form_fields($show_options, $instance, true);
+        $show_options = array(
+            array(
+                'field_id' => 'show_date',
+                'type' => 'checkbox',
+                'label' => 'Date'
+            ),
+        );
         $this->form_fields($show_options, $instance, true);
     }
     
