@@ -104,7 +104,7 @@ class Posts_Widget extends WP_Widget {
 
         $template = $this->get_template($instance);
 
-        $before_widget = $this->add_class($before_widget, $instance['span']);
+        //$before_widget = $this->add_class($before_widget, $instance['span']);
         echo "<!--{$template} -->";
         echo $before_widget;
         include($template);
