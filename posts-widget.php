@@ -40,6 +40,20 @@ class Posts_Widget extends WP_Widget {
     private $classname = 'posts-widget';
     
     /**
+     *
+     * @var type 
+     */
+    private $width = '250';
+    
+    
+    /**
+     * Never used - does nothing.
+     * @var type 
+     */
+    private $height = '200';
+    
+    
+    /**
      * Be careful to consider PHP versions. If running PHP4 class name as the contructor instead.
      * 
      * @author Eddie Moya
@@ -50,8 +64,13 @@ class Posts_Widget extends WP_Widget {
             'description' => $this->description,
             'classname' => $this->classname
         );
+        
+        $control_options = array(
+            'height' => $this->height,
+            'width' => $this->width
+        );
 
-        parent::WP_Widget($this->id_base, $this->widget_name, $this->widget_ops);
+        parent::WP_Widget($this->id_base, $this->widget_name, $this->widget_ops, $control_options);
     }
     
     /**
@@ -660,7 +679,7 @@ class Posts_Widget extends WP_Widget {
             case 'text': ?>
             
                     <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?>: </label>
-                    <input id="<?php echo $this->get_field_id( $field_id ); ?>" style="<?php echo $style; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $instance[$field_id]; ?>" />
+                    <input type="text" id="<?php echo $this->get_field_id( $field_id ); ?>" class="widefat" style="<?php echo $style; ?>" class="" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $instance[$field_id]; ?>" />
                 <?php break;
             
             case 'select': ?>
