@@ -369,8 +369,8 @@ class Posts_Widget extends WP_Widget {
         $defaults = array(
             'title' => '', 
             'style' => 'normal',
-            'limit' => 3,
-            'filter-by' => 'automatic',
+            'limit' => 1,
+            'filter-by' => 'manual',
             'show_title' => 'on',
             'show_subtitle' => 'on',
             'show_category' => 'on',
@@ -439,10 +439,10 @@ class Posts_Widget extends WP_Widget {
                 'type' => 'select',
                 'label' => 'Filter By (save to update)',
                 'options' => array (
-                    'automatic' => 'Automatic',
+                    //'automatic' => 'Automatic',
+                    'manual' => 'Manual',
                     'category' => 'Category',
                     'author' => 'Author',
-                    'manual' => 'Manual'
                 )
             )
         );
@@ -536,19 +536,6 @@ class Posts_Widget extends WP_Widget {
                 'options' => array(
                     'general'  => 'General',
                     'featured' => 'Featured'
-                )
-            ),
-            array(
-                'field_id' => 'span',
-                'type'      => 'select',
-                'label' =>  'Widget Width',
-                'options' => array(
-                    'span3' =>  '25%',
-                    'span4'  => '33%',
-                    'span6' => '50%',
-                    'span8' => '66%',
-                    'span9' => '75%',
-                    'span12' => '100%'
                 )
             ),
             
