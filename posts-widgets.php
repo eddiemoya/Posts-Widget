@@ -8,5 +8,6 @@ Author URI: http://eddiemoya.com/
  */
 
 include (plugin_dir_path(__FILE__) . 'widgets/post-widgets.php');
+include (plugin_dir_path(__FILE__) . 'widgets/featured-question.php');
 include (plugin_dir_path(__FILE__) . 'widgets/content-list.php');
  ?>

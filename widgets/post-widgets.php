@@ -114,7 +114,7 @@ class Posts_Widget extends WP_Widget {
      * @return string 
      */
     function query($instance){
-        //$query['is_widget'] = $instance;
+        $query['is_widget'] = $instance;
         
         //@todo : should be a loop going through all available post types
         $post_types = array('post', 'guides', 'question');
@@ -167,7 +167,7 @@ class Posts_Widget extends WP_Widget {
                 $query['post__in'][] = $instance['post__in_' . ($i)];
             }
         }
-        echo "<pre>";print_r($query);echo "</pre>";
+        //echo "<pre>";print_r($query);echo "</pre>";
         return $query;
     }
 
@@ -438,10 +438,10 @@ class Posts_Widget extends WP_Widget {
                 'type' => 'select',
                 'label' => 'Filter By (save to update)',
                 'options' => array (
-                    'automatic' => 'Automatic',
+                   // 'automatic' => 'Automatic',
+                    'manual' => 'Manual',
                     'category' => 'Category',
                     'author' => 'Author',
-                    'manual' => 'Manual'
                 )
             )
         );
@@ -593,7 +593,7 @@ class Posts_Widget extends WP_Widget {
             ),
             array(
                 'field_id' => 'widget_name',
-                'type' => 'text',
+                'type' => 'hidden',
                 'label' => ''
             ),
         );
