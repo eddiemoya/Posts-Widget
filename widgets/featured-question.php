@@ -14,28 +14,28 @@ class Featured_Questions_Widget extends WP_Widget {
      * 
      * @var string [REQUIRED]
      */
-    var $widget_name = 'Posts Widget: Featured Question';
+    var $widget_name = 'Posts Widget: Featured';
    
     /**
      * Root id for all widgets of this type. Will be automatically generate if not set.
      * 
      * @var string [OPTIONAL]. FALSE by default.
      */
-    var $id_base = 'featured_question_widget';
+    var $id_base = 'featured_post';
     
     /**
      * Shows up under the widget in the admin interface
      * 
      * @var string [OPTIONAL]
      */
-    private $description = 'Featured Questions Widget';
+    private $description = 'Featured Posts of Questions';
 
     /**
      * CSS class used in the wrapping container for each instance of the widget on the front end.
      * 
      * @var string [OPTIONAL]
      */
-    private $classname = 'featured-widget';
+    private $classname = 'featured-post';
     
     /**
      * Be careful to consider PHP versions. If running PHP4 class name as the contructor instead.
@@ -77,7 +77,10 @@ class Featured_Questions_Widget extends WP_Widget {
      */
     public function widget( $args, $instance ){
 
-
+        $instance['limit'] = 1;
+        $instance['include_question'] = true;
+        $instance['include_post'] = true;
+        $instace['filter-by'] = 'manual';
  		the_widget('Posts_Widget', $instance, $args);
         
     }
@@ -143,13 +146,11 @@ class Featured_Questions_Widget extends WP_Widget {
         $defaults = array(
             'title' => 'Default Value of Text Field',  
             'widget_name' => $this->classname, 
-            'filter-by' => 'manual', 
-            'limit' => 2);
+            'filter-by' => 'manual',
+            'limit' => 1);
         
         /* Merge saved input values with default values */
-        $instance = wp_parse_args((array) $instance, $defaults);
-
-        ?><p><strong>Genreal Options:</strong></p><?php        
+        $instance = wp_parse_args((array) $instance, $defaults);     
  
         if($instance['show_title']) {
             $fields[] = array(
@@ -168,7 +169,7 @@ class Featured_Questions_Widget extends WP_Widget {
         }
         
        
-        if($instance['share_style']) {
+        if($instance['show_share']) {
             $fields[] =  array(
                 'field_id' => 'share_style',
                 'type' => 'select',
@@ -200,6 +201,11 @@ class Featured_Questions_Widget extends WP_Widget {
                 'field_id' => 'show_category',
                 'type' => 'checkbox',
                 'label' => 'Category'
+            ),
+            array(
+                'field_id' => 'show_share',
+                'type' => 'checkbox',
+                'label' => 'Share Icons'
             ),
             array(
                 'field_id' => 'widget_name',
@@ -327,7 +333,13 @@ class Featured_Questions_Widget extends WP_Widget {
                 ?>
                     
                 <?php break;
+
             
+            case 'hidden': ?>
+                    <input id="<?php echo $this->get_field_id( $field_id ); ?>" type="hidden" style="<?php echo $style; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $instance[$field_id]; ?>" />
+                <?php break;
+            
+
             case 'checkbox' : ?>
                     <input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"<?php checked( (!empty($instance[$field_id]))); ?> />
                 	<label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?></label>

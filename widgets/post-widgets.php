@@ -100,7 +100,7 @@ class Posts_Widget extends WP_Widget {
         $template = $this->get_template($instance);
 
         //$before_widget = $this->add_class($before_widget, $instance['span']);
-        echo "<!--{$template} -->";
+        echo "<!--$template-->";
         echo $before_widget;
         include($template);
         echo $after_widget;
@@ -163,8 +163,12 @@ class Posts_Widget extends WP_Widget {
         }
 
         if ($filter == 'manual') {
-            for ($i = 1; $i < $instance['limit'] + 1; $i++) {
-                $query['post__in'][] = $instance['post__in_' . ($i)];
+            if($instance['limit'] == 1){
+                $query['p'] = $instance['post__in_1'];
+            } else {
+                for ($i = 1; $i < $instance['limit'] + 1; $i++) {
+                    $query['post__in'][] = $instance['post__in_' . ($i)];
+                }
             }
         }
         //echo "<pre>";print_r($query);echo "</pre>";
@@ -243,8 +247,9 @@ class Posts_Widget extends WP_Widget {
         }
 
         if (is_single()) {
+            $object = get_post(get_query_var('p'));
             $single_templates = array(
-                "single-{$object->post_type}-{$object->slug}.php",
+                "single-{$object->post_type}-{$object->post_name}.php",
                 "single-{$object->post_type}-{$object->ID}.php",
                 "single-{$object->post_type}.php",
                 "single.php"
@@ -405,7 +410,7 @@ class Posts_Widget extends WP_Widget {
         }
         
        
-        if($instance['share_style']) {
+        if($instance['show_share']) {
             $fields[] =  array(
                 'field_id' => 'share_style',
                 'type' => 'select',
@@ -705,6 +710,12 @@ class Posts_Widget extends WP_Widget {
                 ?>
                     
                 <?php break;
+            
+
+            case 'hidden': ?>
+                    <input id="<?php echo $this->get_field_id( $field_id ); ?>" type="hidden" style="<?php echo $style; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $instance[$field_id]; ?>" />
+                <?php break;
+
             
             case 'checkbox' : ?>
                     <input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"<?php checked( (!empty($instance[$field_id]))); ?> />
