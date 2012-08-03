@@ -390,4 +390,4 @@ class Featured_Posts_Widget extends WP_Widget {
     }
 }
 
-Featured_Questions_Widget::register_widget();
+Featured_Posts_Widget::register_widget();
