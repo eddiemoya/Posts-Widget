@@ -7,7 +7,7 @@ Author: Eddie Moya
 /**
  * IMPORTANT: Change the class name for each widget
  */    
-class Featured_Questions_Widget extends WP_Widget {
+class Featured_Posts_Widget extends WP_Widget {
       
     /**
      * Name for this widget type, should be human-readable - the actual title it will go by.
@@ -28,7 +28,7 @@ class Featured_Questions_Widget extends WP_Widget {
      * 
      * @var string [OPTIONAL]
      */
-    private $description = 'Featured Posts of Questions';
+    private $description = 'Featured Posts or Questions';
 
     /**
      * CSS class used in the wrapping container for each instance of the widget on the front end.
@@ -77,7 +77,6 @@ class Featured_Questions_Widget extends WP_Widget {
      */
     public function widget( $args, $instance ){
 
-        $instance['limit'] = 1;
         $instance['include_question'] = true;
         $instance['include_post'] = true;
         $instace['filter-by'] = 'manual';
@@ -183,9 +182,8 @@ class Featured_Questions_Widget extends WP_Widget {
         $this->form_fields($fields, $instance);
         ?><p><strong>Display Options:</strong></p><?php
 
+        ?><p><label>Show:</label></p><?php
         
-
-        /* Example of multiple inputs at once. */
         $show_options = array(
             array(
                 'field_id' => 'show_title',
@@ -202,10 +200,43 @@ class Featured_Questions_Widget extends WP_Widget {
                 'type' => 'checkbox',
                 'label' => 'Category'
             ),
+        );
+        
+        
+        $this->form_fields($show_options, $instance, true);
+        
+        
+        $show_options = array(
+            array(
+                'field_id' => 'show_content',
+                'type' => 'checkbox',
+                'label' => 'Post Content'
+            ),
+            array(
+                'field_id' => 'show_comment_count',
+                'type' => 'checkbox',
+                'label' => 'Response Count'
+            ),
+        );
+        
+        
+        $this->form_fields($show_options, $instance, true);
+        
+        $show_options = array(
             array(
                 'field_id' => 'show_share',
                 'type' => 'checkbox',
                 'label' => 'Share Icons'
+            ),
+            array(
+                'field_id' => 'show_date',
+                'type' => 'checkbox',
+                'label' => 'Date'
+            ),
+            array(
+                'field_id' => 'show_thumbnail',
+                'type' => 'checkbox',
+                'label' => 'Featured Image'
             ),
             array(
                 'field_id' => 'widget_name',
@@ -217,12 +248,9 @@ class Featured_Questions_Widget extends WP_Widget {
                 'type' => 'hidden',
                 'label' => ''
             ),
-        );
-        
+        );   
         
         $this->form_fields($show_options, $instance, true);
-
-
 
         ?><p><strong>Query Options:</strong></p><?php
         
@@ -235,6 +263,17 @@ class Featured_Questions_Widget extends WP_Widget {
         }
 
         $this->form_fields($query_options, $instance);
+        
+        $limit = array(
+            array(
+                'field_id' => 'limit',
+                'type' => 'select',
+                'label' => 'Number of posts',
+                'options' => range(0, 2)
+            )
+        );
+        
+        $this->form_fields($limit, $instance);
 
     }
     
