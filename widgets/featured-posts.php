@@ -49,7 +49,7 @@ class Featured_Posts_Widget extends WP_Widget {
             'classname' => $this->classname
         );
 
-        parent::WP_Widget($this->id_base, $this->widget_name, $this->widget_ops);
+        parent::WP_Widget($this->id_base, $this->widget_name, $widget_ops);
     }
     
     /**
