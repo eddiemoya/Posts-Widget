@@ -65,7 +65,7 @@ class Posts_Widget extends WP_Widget {
             'width' => $this->width
         );
 
-        parent::WP_Widget($this->id_base, $this->widget_name, $this->widget_ops, $control_options);
+        parent::WP_Widget($this->id_base, $this->widget_name, $widget_ops, $control_options);
     }
     
     /**
@@ -98,9 +98,9 @@ class Posts_Widget extends WP_Widget {
         query_posts($this->query($instance));
 
         $template = $this->get_template($instance);
-
+        //echo "<pre>";print_r($wp_queryl);echo "</pre>";
         //$before_widget = $this->add_class($before_widget, $instance['span']);
-        echo "<!--$template-->";
+        //echo "$template";
         echo $before_widget;
         include($template);
         echo $after_widget;
@@ -146,7 +146,7 @@ class Posts_Widget extends WP_Widget {
             $query['cat'] = $instance['category'];
             
             if($query['cat'] == '_automatic'){
-                $query['cat']= get_query_var('cat');
+                $query['cat'] = get_queried_object()->term_id;
             }
             
             if(isset($instance['subcategory'])){
@@ -171,7 +171,8 @@ class Posts_Widget extends WP_Widget {
                 }
             }
         }
-        //echo "<pre>";print_r($query);echo "</pre>";
+        //$q = get_queried_object();
+        //echo "<pre>";print_r($wp_query);echo "</pre>";
         return $query;
     }
 
@@ -198,7 +199,7 @@ class Posts_Widget extends WP_Widget {
             $role = get_userdata($object->ID)->roles[0];
         }
         
-        $directories = apply_filters('widget_template_dirs', array('widgets/%widget-name%/','widgets/'));
+        $directories = apply_filters('widget_template_dirs', array('widgets/%widget-name%','widgets'));
         $directories = str_replace('%widget-name%', $instance['widget_name'], $directories);
 
         array_push($directories, '');
@@ -283,9 +284,11 @@ class Posts_Widget extends WP_Widget {
      */
     function template_set($templates, $dirs){
         $set = array();
+        //echo "<pre>";print_r($dirs);echo "</pre>";
         foreach((array)$templates as $template){
             foreach($dirs as $dir){
-                $set[] = $dir.$template;
+                $div = (!empty($dir) && !empty($template)) ? "/" : "";
+                $set[] = $dir . $div . $template;
             }
         }
         return $set;
@@ -300,7 +303,8 @@ class Posts_Widget extends WP_Widget {
     function dirs($template, $dirs = array('')){
         $templates = array();
         foreach((array)$dirs as $dir){
-            $templates[] = $dir . $template;
+            $div = (!empty($dir) && !empty($template)) ? "/" : "";
+            $templates[] = $dir . $div . $template;
         }
         
         return $templates;
