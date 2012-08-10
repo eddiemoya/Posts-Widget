@@ -35,7 +35,7 @@ class Results_List_Widget extends WP_Widget {
      * 
      * @var string [OPTIONAL]
      */
-    private $classname = 'results-list';
+    private $classname = 'result-list';
     
     /**
      * Be careful to consider PHP versions. If running PHP4 class name as the contructor instead.
@@ -76,6 +76,7 @@ class Results_List_Widget extends WP_Widget {
      * @return void 
      */
     public function widget( $args, $instance ){
+
  		the_widget('Posts_Widget', $instance, $args);
 
         
