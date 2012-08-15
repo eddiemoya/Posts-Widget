@@ -119,10 +119,11 @@ class Posts_Widget extends WP_Widget {
         //@todo : should be a loop going through all available post types
         $post_types = array('post', 'guides', 'question');
         foreach ($post_types as $post_type) {
-            if ($instance['include_' . $post_type]) {
+            if (isset($instance['include_' . $post_type])) {
                 $query['post_type'][] = $post_type;
             }
         }
+        //$query['is_widget']
 
         $query['posts_per_page'] = $instance['limit'];
         
@@ -145,7 +146,7 @@ class Posts_Widget extends WP_Widget {
         if($filter == 'category'){
             $query['cat'] = $instance['category'];
             
-            if($query['cat'] == '_automatic'){
+            if($query['cat'] == '_automatic' && isset(get_queried_object()->term_id)){
                 $query['cat'] = get_queried_object()->term_id;
             }
             
@@ -205,6 +206,13 @@ class Posts_Widget extends WP_Widget {
         array_push($directories, '');
 
         $templates = array();
+        $tax_templates = array();
+        $cat_templates = array();
+        $tag_templates = array();
+        $author_templates = array();
+        $archive_templates = array();
+        $single_templates = array();
+        $index_templates = array();
 
         if (is_archive()) {
             
@@ -397,7 +405,7 @@ class Posts_Widget extends WP_Widget {
         
         ?><p><strong>Genreal Options:</strong></p><?php        
  
-        if($instance['show_title']) {
+        if(isset($instance['show_title'])) {
             $fields[] = array(
                 'field_id' => 'widget_title',
                 'type' => 'text',
@@ -405,7 +413,7 @@ class Posts_Widget extends WP_Widget {
             );
         }
         
-        if($instance['show_subtitle']) {
+        if(isset($instance['show_subtitle'])) {
             $fields[] = array(
                 'field_id' => 'widget_subtitle',
                 'type' => 'text',
@@ -414,7 +422,7 @@ class Posts_Widget extends WP_Widget {
         }
         
        
-        if($instance['show_share']) {
+        if(isset($instance['show_share'])) {
             $fields[] =  array(
                 'field_id' => 'share_style',
                 'type' => 'select',
@@ -454,60 +462,63 @@ class Posts_Widget extends WP_Widget {
                 )
             )
         );
-        
-        if($instance['filter-by'] == 'category') {
-            
-            $categories = get_categories(array('parent' => 0, 'hide_empty' => false, 'hierarchical' => true));
-            foreach($categories as $cat){
-                $cats[$cat->term_id] = $cat->name; 
-            }
-            
-            $query_options[] = array(
-                'field_id' => 'category',
-                'type' => 'select',
-                'label' => 'Category',
-                'options' => $cats 
-            );
-            
-            if($instance['category']){
-                $categories = get_categories(array('parent' => $instance['category'], 'hide_empty' => false, 'hierarchical' => true));
+        if(isset($instance['filter-by'])){
+            if($instance['filter-by'] == 'category') {
+                
+                $categories = get_categories(array('parent' => 0, 'hide_empty' => false, 'hierarchical' => true));
                 foreach($categories as $cat){
-                    $subcats[$cat->term_id] = $cat->name; 
+                    $cats[$cat->term_id] = $cat->name; 
                 }
-                if(!empty($subcats)){
-                    $all = array($instance['category'] => 'All');
-                    $query_options[] = array(
-                        'field_id' => 'subcategory',
-                        'type' => 'select',
-                        'label' => 'Subcategory',
-                        'options' => $all + $subcats
-                    );
-                } else unset($instance['subcategory']);
-            }
-        }
-        
-        if($instance['filter-by'] == 'author'){
-            $authors = get_users();
-            foreach($authors as $author){
-                $users[$author->ID] = $author->user_nicename;
-            }
-            if(!empty($users)){
+                
                 $query_options[] = array(
-                    'field_id' => 'author',
+                    'field_id' => 'category',
                     'type' => 'select',
-                    'label' => 'Author',
-                    'options' => $users
+                    'label' => 'Category',
+                    'options' => $cats 
                 );
+                
+                if(isset($instance['category'])){
+                    $categories = get_categories(array('parent' => $instance['category'], 'hide_empty' => false, 'hierarchical' => true));
+                    foreach($categories as $cat){
+                        $subcats[$cat->term_id] = $cat->name; 
+                    }
+                    if(!empty($subcats)){
+                        $all = array($instance['category'] => 'All');
+                        $query_options[] = array(
+                            'field_id' => 'subcategory',
+                            'type' => 'select',
+                            'label' => 'Subcategory',
+                            'options' => $all + $subcats
+                        );
+                    } else unset($instance['subcategory']);
+                }
             }
-        }
+
         
-       if ($instance['filter-by'] == 'manual') {
-            for ($i = 1; $i < $instance['limit']+1; $i++) {
-                $query_options[] = array(
-                    'field_id' => "post__in_" . ($i),
-                    'type' => 'text',
-                    'label' => "Post ID #" . ($i),
-                );
+
+            if($instance['filter-by'] == 'author'){
+                $authors = get_users();
+                foreach($authors as $author){
+                    $users[$author->ID] = $author->user_nicename;
+                }
+                if(!empty($users)){
+                    $query_options[] = array(
+                        'field_id' => 'author',
+                        'type' => 'select',
+                        'label' => 'Author',
+                        'options' => $users
+                    );
+                }
+            }
+            
+           if ($instance['filter-by'] == 'manual') {
+                for ($i = 1; $i < $instance['limit']+1; $i++) {
+                    $query_options[] = array(
+                        'field_id' => "post__in_" . ($i),
+                        'type' => 'text',
+                        'label' => "Post ID #" . ($i),
+                    );
+                }
             }
         }
         
@@ -642,6 +653,8 @@ class Posts_Widget extends WP_Widget {
         foreach($fields as $field){
             
             extract($field);
+            $label = (!isset($label)) ? null : $label;
+            $options = (!isset($options)) ? null : $options;
             $this->form_field($field_id, $type, $label, $instance, $options, $group);
         }
         
@@ -672,13 +685,13 @@ class Posts_Widget extends WP_Widget {
         if(!$group)
              echo "<p>";
             
-        
+        $input_value = (isset($instance[$field_id])) ? $instance[$field_id] : '';
         switch ($type){
             
             case 'text': ?>
             
                     <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?>: </label>
-                    <input type="text" id="<?php echo $this->get_field_id( $field_id ); ?>" class="widefat" style="<?php echo $style; ?>" class="" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $instance[$field_id]; ?>" />
+                    <input type="text" id="<?php echo $this->get_field_id( $field_id ); ?>" class="widefat" style="<?php echo (isset($style)) ? $style : ''; ?>" class="" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value; ?>" />
                 <?php break;
             
             case 'select': ?>
@@ -687,7 +700,7 @@ class Posts_Widget extends WP_Widget {
                         <?php
                             foreach ( $options as $value => $label ) :  ?>
                         
-                                <option value="<?php echo $value; ?>" <?php selected($value, $instance[$field_id]) ?>>
+                                <option value="<?php echo $value; ?>" <?php selected($value, $input_value) ?>>
                                     <?php echo $label ?>
                                 </option><?php
                                 
@@ -704,7 +717,7 @@ class Posts_Widget extends WP_Widget {
                 
                 ?>
                     <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?>: </label>
-                    <textarea class="widefat" rows="<?php echo $rows; ?>" cols="<?php echo $cols; ?>" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"><?php echo $instance[$field_id]; ?></textarea>
+                    <textarea class="widefat" rows="<?php echo $rows; ?>" cols="<?php echo $cols; ?>" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"><?php echo $input_value; ?></textarea>
                 <?php break;
             
             case 'radio' :
@@ -717,7 +730,7 @@ class Posts_Widget extends WP_Widget {
             
 
             case 'hidden': ?>
-                    <input id="<?php echo $this->get_field_id( $field_id ); ?>" type="hidden" style="<?php echo $style; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $instance[$field_id]; ?>" />
+                    <input id="<?php echo $this->get_field_id( $field_id ); ?>" type="hidden" style="<?php echo (isset($style)) ? $style : ''; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value; ?>" />
                 <?php break;
 
             

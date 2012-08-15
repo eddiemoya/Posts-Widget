@@ -201,6 +201,9 @@ class Results_List_Widget extends WP_Widget {
         foreach($fields as $field){
             
             extract($field);
+            $label = (!isset($label)) ? null : $label;
+            $options = (!isset($options)) ? null : $options;
+
             $this->form_field($field_id, $type, $label, $instance, $options, $group);
         }
         
@@ -231,13 +234,13 @@ class Results_List_Widget extends WP_Widget {
         if(!$group)
              echo "<p>";
             
-        
+        $input_value = (isset($instance[$field_id])) ? $instance[$field_id] : '';
         switch ($type){
             
             case 'text': ?>
             
                     <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?>: </label>
-                    <input type="text" id="<?php echo $this->get_field_id( $field_id ); ?>" class="widefat" style="<?php echo $style; ?>" class="" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $instance[$field_id]; ?>" />
+                    <input type="text" id="<?php echo $this->get_field_id( $field_id ); ?>" class="widefat" style="<?php echo (isset($style)) ? $style : ''; ?>" class="" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value ?>" />
                 <?php break;
             
             case 'select': ?>
@@ -246,7 +249,7 @@ class Results_List_Widget extends WP_Widget {
                         <?php
                             foreach ( $options as $value => $label ) :  ?>
                         
-                                <option value="<?php echo $value; ?>" <?php selected($value, $instance[$field_id]) ?>>
+                                <option value="<?php echo $value; ?>" <?php selected($value, $input_value) ?>>
                                     <?php echo $label ?>
                                 </option><?php
                                 
@@ -263,7 +266,7 @@ class Results_List_Widget extends WP_Widget {
                 
                 ?>
                     <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?>: </label>
-                    <textarea class="widefat" rows="<?php echo $rows; ?>" cols="<?php echo $cols; ?>" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"><?php echo $instance[$field_id]; ?></textarea>
+                    <textarea class="widefat" rows="<?php echo $rows; ?>" cols="<?php echo $cols; ?>" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"><?php echo $input_value ?></textarea>
                 <?php break;
             
             case 'radio' :
@@ -276,7 +279,7 @@ class Results_List_Widget extends WP_Widget {
             
 
             case 'hidden': ?>
-                    <input id="<?php echo $this->get_field_id( $field_id ); ?>" type="hidden" style="<?php echo $style; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $instance[$field_id]; ?>" />
+                    <input id="<?php echo $this->get_field_id( $field_id ); ?>" type="hidden" style="<?php echo (isset($style)) ? $style : ''; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value ?>" />
                 <?php break;
 
             
