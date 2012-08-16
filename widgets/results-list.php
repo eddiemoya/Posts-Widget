@@ -77,7 +77,26 @@ class Results_List_Widget extends WP_Widget {
      */
     public function widget( $args, $instance ){
 
- 		the_widget('Posts_Widget', $instance, $args);
+        if(!isset($instance['query_type']) || $instance['query_type'] == 'posts'){
+
+            the_widget('Posts_Widget', $instance, $args);
+
+        } else {
+
+            if(function_exists('get_users_by_taxonomy')){
+                if(isset(get_queried_object()->term_id) && function_exists('get_partial')){
+
+                    if(isset($_REQUEST['filter-sub-category']) || isset($_REQUEST['filter-category'])){
+                        $category = (isset($_REQUEST['filter-sub-category'])) ? $_REQUEST['filter-sub-category'] : $_REQUEST['filter-category'];
+                    } else {
+                        $category = get_queried_object()->term_id;
+                    }
+                    $users = get_users_by_taxonomy('category', $category);
+                    get_partial('widgets/results-list/author-archive', array('users' => $users));
+                }
+                
+            }
+        }
 
         
     }
@@ -143,6 +162,7 @@ class Results_List_Widget extends WP_Widget {
      */
     public function form($instance){
         $defaults = array(  
+            'query_type' => 'posts',
             'widget_name' => $this->classname, 
             'filter-by' => 'category',
             'category' => '_automatic',
@@ -152,6 +172,16 @@ class Results_List_Widget extends WP_Widget {
         $instance = wp_parse_args((array) $instance, $defaults);    
 
         $fields = array(
+            array(
+                'field_id' => 'query_type',
+                'type' => 'select',
+                'label' => 'Type of Results to Show',
+                'options' => array(
+                    'posts' => 'Posts',
+                    'users' => 'Users'
+                    )
+                ),
+             
             array(
                 'field_id' => 'widget_name',
                 'type' => 'hidden',
