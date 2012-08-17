@@ -428,8 +428,8 @@ class Posts_Widget extends WP_Widget {
                 'type' => 'select',
                 'label' => 'Share Tools Style',
                 'options' => array(
-                    'footer' => 'Footer Bar',
-                    'flyout' => 'Flyout'
+                    'long' => 'Long (post footer bar)',
+                    'short' => 'Short (button w. flyout)'
                 )
             );
         }
@@ -547,18 +547,18 @@ class Posts_Widget extends WP_Widget {
         
         ?><p><strong>Display Options:</strong></p><?php
         
-        $show_options = array(
-            array(
-                'field_id' => 'style',
-                'type'      => 'select',
-                'label' =>  'Select a Template Style',
-                'options' => array(
-                    'general'  => 'General',
-                    'featured' => 'Featured'
-                )
-            ),          
-        );
-        $this->form_fields($show_options, $instance);
+        // $show_options = array(
+        //     array(
+        //         'field_id' => 'style',
+        //         'type'      => 'select',
+        //         'label' =>  'Select a Template Style',
+        //         'options' => array(
+        //             'general'  => 'General',
+        //             'featured' => 'Featured'
+        //         )
+        //     ),          
+        // );
+        // $this->form_fields($show_options, $instance);
         
         ?><p><label>Show:</label></p><?php
         
