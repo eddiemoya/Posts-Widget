@@ -170,8 +170,8 @@ class Content_List_Widget extends WP_Widget {
                 'type' => 'select',
                 'label' => 'Share Tools Style',
                 'options' => array(
-                    'footer' => 'Footer Bar',
-                    'flyout' => 'Flyout'
+                    'long' => 'Footer Bar',
+                    'short' => 'Flyout'
                 )
             );
         }
