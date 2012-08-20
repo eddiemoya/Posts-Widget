@@ -140,10 +140,13 @@ class Content_List_Widget extends WP_Widget {
     public function form($instance){
         
         /* Setup default values for form fields - associtive array, keys are the field_id's */
-        $defaults = array('title' => 'Default Value of Text Field',  'widget_name' => $this->classname, 'filter-by' => 'manual');
+        $defaults = array(
+            'title' => 'Default Value of Text Field',  
+            'widget_name' => $this->classname, 
+            'filter-by' => 'manual');
         
         /* Merge saved input values with default values */
-        $instance = wp_parse_args((array) $instance, $defaults);
+        $instance = wp_parse_args((array) $instance, $defaults);  
 
         ?><p><strong>Genreal Options:</strong></p><?php        
         $fields = array();
@@ -198,13 +201,18 @@ class Content_List_Widget extends WP_Widget {
                 'label' => 'Category'
             ),
             array(
+                'field_id' => 'show_category',
+                'type' => 'checkbox',
+                'label' => 'Category'
+            ),
+            array(
                 'field_id' => 'widget_name',
                 'type' => 'hidden',
                 'label' => ''
             ),
             array(
                 'field_id' => 'filter-by',
-                'type' => 'text',
+                'type' => 'hidden',
                 'label' => ''
             ),
         );
@@ -334,6 +342,11 @@ class Content_List_Widget extends WP_Widget {
                     
                 <?php break;
             
+            case 'hidden': ?>
+                    <input id="<?php echo $this->get_field_id( $field_id ); ?>" type="hidden" style="<?php echo (isset($style)) ? $style : ''; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value; ?>" />
+                <?php break;
+            
+
             case 'checkbox' : ?>
                     <input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"<?php checked( (!empty($instance[$field_id]))); ?> />
                 	<label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?></label>
