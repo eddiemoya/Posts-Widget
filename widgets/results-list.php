@@ -7,35 +7,35 @@ Author: Eddie Moya
 /**
  * IMPORTANT: Change the class name for each widget
  */    
-class Content_List_Widget extends WP_Widget {
+class Results_List_Widget extends WP_Widget {
       
     /**
      * Name for this widget type, should be human-readable - the actual title it will go by.
      * 
      * @var string [REQUIRED]
      */
-    var $widget_name = 'Posts Widget: Content List';
+    var $widget_name = 'Posts Widget: Results List';
    
     /**
      * Root id for all widgets of this type. Will be automatically generate if not set.
      * 
      * @var string [OPTIONAL]. FALSE by default.
      */
-    var $id_base = 'content_list_widget';
+    var $id_base = 'results_list_widget';
     
     /**
      * Shows up under the widget in the admin interface
      * 
      * @var string [OPTIONAL]
      */
-    private $description = 'Content List Example';
+    private $description = 'Results List Widget';
 
     /**
      * CSS class used in the wrapping container for each instance of the widget on the front end.
      * 
      * @var string [OPTIONAL]
      */
-    private $classname = 'content-list';
+    private $classname = 'results-list';
     
     /**
      * Be careful to consider PHP versions. If running PHP4 class name as the contructor instead.
@@ -77,8 +77,27 @@ class Content_List_Widget extends WP_Widget {
      */
     public function widget( $args, $instance ){
 
+        if(!isset($instance['query_type']) || $instance['query_type'] == 'posts'){
 
- 		the_widget('Posts_Widget', $instance, $args);
+            the_widget('Posts_Widget', $instance, $args);
+
+        } else {
+
+            if(function_exists('get_users_by_taxonomy')){
+                if(isset(get_queried_object()->term_id) && function_exists('get_partial')){
+
+                    if(isset($_REQUEST['filter-sub-category']) || isset($_REQUEST['filter-category'])){
+                        $category = (isset($_REQUEST['filter-sub-category'])) ? $_REQUEST['filter-sub-category'] : $_REQUEST['filter-category'];
+                    } else {
+                        $category = get_queried_object()->term_id;
+                    }
+                    $users = get_users_by_taxonomy('category', $category);
+                    get_partial('widgets/results-list/author-archive', array('users' => $users));
+                }
+                
+            }
+        }
+
         
     }
     
@@ -100,6 +119,8 @@ class Content_List_Widget extends WP_Widget {
         /* Lets inherit the existing settings */
         $instance = $old_instance;
         
+        
+        
         /**
          * Sanitize each option - be careful, if not all simple text fields,
          * then make use of other WordPress sanitization functions, but also
@@ -111,7 +132,9 @@ class Content_List_Widget extends WP_Widget {
         foreach($new_instance as $key => $value){
             $instance[$key] = esc_attr($value);
             
-        }        
+        }
+        
+        
         foreach($instance as $key => $value){
             if($value == 'on' && !isset($new_instance[$key])){
                 unset($instance[$key]);
@@ -138,73 +161,27 @@ class Content_List_Widget extends WP_Widget {
      * @return void 
      */
     public function form($instance){
-        
-        /* Setup default values for form fields - associtive array, keys are the field_id's */
-        $defaults = array(
-            'title' => 'Default Value of Text Field',  
+        $defaults = array(  
+            'query_type' => 'posts',
             'widget_name' => $this->classname, 
-            'filter-by' => 'manual');
-        
-        /* Merge saved input values with default values */
-        $instance = wp_parse_args((array) $instance, $defaults);  
+            'filter-by' => 'category',
+            'category' => '_automatic',
+            'limit' => '10'
+        );
 
-        ?><p><strong>General Options:</strong></p><?php        
-        $fields = array();
-        if(isset($instance['show_title'])) {
-            $fields[] = array(
-                'field_id' => 'widget_title',
-                'type' => 'text',
-                'label' => 'Title'
-            );
-        }
-        
-        if(isset($instance['show_subtitle'])) {
-            $fields[] = array(
-                'field_id' => 'widget_subtitle',
-                'type' => 'text',
-                'label' => 'Sub-Title'
-            );
-        }
-        
-       
-        if(isset($instance['share_style'])) {
-            $fields[] =  array(
-                'field_id' => 'share_style',
+        $instance = wp_parse_args((array) $instance, $defaults);    
+
+        $fields = array(
+            array(
+                'field_id' => 'query_type',
                 'type' => 'select',
-                'label' => 'Share Tools Style',
+                'label' => 'Type of Results to Show',
                 'options' => array(
-                    'long' => 'Footer Bar',
-                    'short' => 'Flyout'
-                )
-            );
-        }
-        $this->form_fields($fields, $instance);
-        ?><p><strong>Display Options:</strong></p><?php
-
-        
-
-        /* Example of multiple inputs at once. */
-        $show_options = array(
-            array(
-                'field_id' => 'show_title',
-                'type' => 'checkbox',
-                'label' => 'Title'
-            ),
-            array(
-                'field_id' => 'show_subtitle',
-                'type' => 'checkbox',
-                'label' => 'Sub-Title'
-            ),
-            array(
-                'field_id' => 'show_category',
-                'type' => 'checkbox',
-                'label' => 'Category'
-            ),
-            array(
-                'field_id' => 'show_category',
-                'type' => 'checkbox',
-                'label' => 'Category'
-            ),
+                    'posts' => 'Posts',
+                    'users' => 'Users'
+                    )
+                ),
+             
             array(
                 'field_id' => 'widget_name',
                 'type' => 'hidden',
@@ -215,36 +192,23 @@ class Content_List_Widget extends WP_Widget {
                 'type' => 'hidden',
                 'label' => ''
             ),
-        );
-        
-        
-        $this->form_fields($show_options, $instance, true);
-
-
-
-        ?><p><strong>Query Options:</strong></p><?php
-        
-        $query_options[] = array(
-
+             array(
+                'field_id' => 'category',
+                'type' => 'hidden',
+                'label' => ''
+            ),
+            array(
                 'field_id' => 'limit',
-                'type' => 'select',
-                'label' => 'Number of posts',
-                'options' => range(0, 10)
+                'type' => 'hidden',
+                'label' => ''
+            )
         );
-        if(isset($instance['limit'])){
-            for ($i = 1; $i < $instance['limit']+1; $i++) {
-                $query_options[] = array(
-                    'field_id' => "post__in_" . ($i),
-                    'type' => 'text',
-                    'label' => "Post ID #" . ($i),
-                );
-            }
-        }
-        $this->form_fields($query_options, $instance);
 
+        $this->form_fields($fields, $instance);
     }
     
-  /**
+
+    /**
      * Helper function - does not need to be part of widgets, this is custom, but 
      * is helpful in generating multiple input fields for the admin form at once. 
      * 
@@ -264,11 +228,12 @@ class Content_List_Widget extends WP_Widget {
             echo "<p>";
         }
             
-        foreach((array)$fields as $field){
+        foreach($fields as $field){
             
             extract($field);
             $label = (!isset($label)) ? null : $label;
             $options = (!isset($options)) ? null : $options;
+
             $this->form_field($field_id, $type, $label, $instance, $options, $group);
         }
         
@@ -305,7 +270,7 @@ class Content_List_Widget extends WP_Widget {
             case 'text': ?>
             
                     <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?>: </label>
-                    <input type="text" id="<?php echo $this->get_field_id( $field_id ); ?>" class="widefat" style="<?php echo (isset($style)) ? $style : ''; ?>" class="" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value; ?>" />
+                    <input type="text" id="<?php echo $this->get_field_id( $field_id ); ?>" class="widefat" style="<?php echo (isset($style)) ? $style : ''; ?>" class="" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value ?>" />
                 <?php break;
             
             case 'select': ?>
@@ -322,7 +287,7 @@ class Content_List_Widget extends WP_Widget {
                         ?>
                     </select>
                     
-				<?php break;
+                <?php break;
                 
             case 'textarea':
                 
@@ -331,7 +296,7 @@ class Content_List_Widget extends WP_Widget {
                 
                 ?>
                     <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?>: </label>
-                    <textarea class="widefat" rows="<?php echo $rows; ?>" cols="<?php echo $cols; ?>" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"><?php echo $input_value; ?></textarea>
+                    <textarea class="widefat" rows="<?php echo $rows; ?>" cols="<?php echo $cols; ?>" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"><?php echo $input_value ?></textarea>
                 <?php break;
             
             case 'radio' :
@@ -342,20 +307,23 @@ class Content_List_Widget extends WP_Widget {
                     
                 <?php break;
             
-            case 'hidden': ?>
-                    <input id="<?php echo $this->get_field_id( $field_id ); ?>" type="hidden" style="<?php echo (isset($style)) ? $style : ''; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value; ?>" />
-                <?php break;
-            
 
+            case 'hidden': ?>
+                    <input id="<?php echo $this->get_field_id( $field_id ); ?>" type="hidden" style="<?php echo (isset($style)) ? $style : ''; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value ?>" />
+                <?php break;
+
+            
             case 'checkbox' : ?>
                     <input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id($field_id); ?>" name="<?php echo $this->get_field_name($field_id); ?>"<?php checked( (!empty($instance[$field_id]))); ?> />
-                	<label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?></label>
+                    <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?></label>
                 <?php
         }
         
         if(!$group)
              echo "</p>";
+            
+       
     }
 }
 
-Content_List_Widget::register_widget();
+Results_List_Widget::register_widget();
