@@ -251,7 +251,7 @@ class Posts_Widget extends WP_Widget {
             }
             
             
-            //$archive_templates = "archive.php";
+            $archive_templates = "archive.php";
       
         }
 
@@ -265,7 +265,7 @@ class Posts_Widget extends WP_Widget {
             );
         }
 
-        $archive_templates = "archive.php";
+        //$archive_templates = "archive.php";
         $index_templates = "index.php";
         
         
