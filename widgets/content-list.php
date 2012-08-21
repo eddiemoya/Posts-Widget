@@ -145,9 +145,15 @@ class Content_List_Widget extends WP_Widget {
         /* Merge saved input values with default values */
         $instance = wp_parse_args((array) $instance, $defaults);
 
+<<<<<<< Updated upstream
         ?><p><strong>Genreal Options:</strong></p><?php        
  
         if($instance['show_title']) {
+=======
+        ?><p><strong>General Options:</strong></p><?php        
+        $fields = array();
+        if(isset($instance['show_title'])) {
+>>>>>>> Stashed changes
             $fields[] = array(
                 'field_id' => 'widget_title',
                 'type' => 'text',
