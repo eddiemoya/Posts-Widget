@@ -405,7 +405,7 @@ class Posts_Widget extends WP_Widget {
             'show_content' => 'on',
             'show_comment_count' => 'on',
             'show_share' => 'on',
-            'share_style' => 'footer',
+            'share_style' => 'long',
             'widget_name' => $this->classname
             );
         
