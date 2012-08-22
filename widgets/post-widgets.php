@@ -199,9 +199,22 @@ class Posts_Widget extends WP_Widget {
         if (is_author()) {
             $role = get_userdata($object->ID)->roles[0];
         }
+
+        $directories = array();
+        //$dir_patterns = apply_filters('widget_template_dirs', array('widgets/%widget-name%','widgets') );
+        $dir_patterns =array('widgets/%widget-name%','widgets');
+
+        $widget_names = explode(' ', $instance['widget_name']);
+
+           // foreach($widget_names as $widget_name){
+        foreach($dir_patterns as $pattern){
+            array_push($directories, str_replace('%widget-name%', $instance['widget_name'], $pattern ) );
+        }
+                //echo "<pre>";print_r( str_replace('%widget-name%', $widget_name, $dir_patterns[$key]) ) ;echo "</pre>";
+            //}
         
-        $directories = apply_filters('widget_template_dirs', array('widgets/%widget-name%','widgets'));
-        $directories = str_replace('%widget-name%', $instance['widget_name'], $directories);
+
+        //echo "<pre>";print_r( $widget_name );echo "</pre>";
 
         array_push($directories, '');
 
@@ -335,7 +348,7 @@ class Posts_Widget extends WP_Widget {
         
         /* Lets inherit the existing settings */
         $instance = $old_instance;
-        
+
         /**
          * Sanitize each option - be careful, if not all simple text fields,
          * then make use of other WordPress sanitization functions, but also
