@@ -201,11 +201,6 @@ class Content_List_Widget extends WP_Widget {
                 'label' => 'Category'
             ),
             array(
-                'field_id' => 'show_category',
-                'type' => 'checkbox',
-                'label' => 'Category'
-            ),
-            array(
                 'field_id' => 'widget_name',
                 'type' => 'hidden',
                 'label' => ''
