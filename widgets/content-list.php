@@ -148,7 +148,7 @@ class Content_List_Widget extends WP_Widget {
         /* Merge saved input values with default values */
         $instance = wp_parse_args((array) $instance, $defaults);  
 
-        ?><p><strong>Genreal Options:</strong></p><?php        
+        ?><p><strong>General Options:</strong></p><?php        
         $fields = array();
         if(isset($instance['show_title'])) {
             $fields[] = array(
