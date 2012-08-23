@@ -166,6 +166,14 @@ class Content_List_Widget extends WP_Widget {
             );
         }
         
+        if(isset($instance['show_category'])) {
+            $fields[] = array(
+                'field_id' => 'category',
+                'type' => 'text',
+                'label' => 'Category Slug'
+            );
+        }
+        
        
         if(isset($instance['share_style'])) {
             $fields[] =  array(
