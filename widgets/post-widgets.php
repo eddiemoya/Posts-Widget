@@ -117,7 +117,7 @@ class Posts_Widget extends WP_Widget {
         $query['is_widget'] = $instance;
         
         //@todo : should be a loop going through all available post types
-        $post_types = array('post', 'guides', 'question');
+        $post_types = array('post', 'guide', 'question');
         foreach ($post_types as $post_type) {
             if (isset($instance['include_' . $post_type])) {
                 $query['post_type'][] = $post_type;
@@ -199,9 +199,22 @@ class Posts_Widget extends WP_Widget {
         if (is_author()) {
             $role = get_userdata($object->ID)->roles[0];
         }
+
+        $directories = array();
+        //$dir_patterns = apply_filters('widget_template_dirs', array('widgets/%widget-name%','widgets') );
+        $dir_patterns =array('widgets/%widget-name%','widgets');
+
+        $widget_names = explode(' ', $instance['widget_name']);
+
+           // foreach($widget_names as $widget_name){
+        foreach($dir_patterns as $pattern){
+            array_push($directories, str_replace('%widget-name%', $instance['widget_name'], $pattern ) );
+        }
+                //echo "<pre>";print_r( str_replace('%widget-name%', $widget_name, $dir_patterns[$key]) ) ;echo "</pre>";
+            //}
         
-        $directories = apply_filters('widget_template_dirs', array('widgets/%widget-name%','widgets'));
-        $directories = str_replace('%widget-name%', $instance['widget_name'], $directories);
+
+        //echo "<pre>";print_r( $widget_name );echo "</pre>";
 
         array_push($directories, '');
 
@@ -335,7 +348,7 @@ class Posts_Widget extends WP_Widget {
         
         /* Lets inherit the existing settings */
         $instance = $old_instance;
-        
+
         /**
          * Sanitize each option - be careful, if not all simple text fields,
          * then make use of other WordPress sanitization functions, but also
@@ -392,7 +405,7 @@ class Posts_Widget extends WP_Widget {
             'show_content' => 'on',
             'show_comment_count' => 'on',
             'show_share' => 'on',
-            'share_style' => 'footer',
+            'share_style' => 'long',
             'widget_name' => $this->classname
             );
         
