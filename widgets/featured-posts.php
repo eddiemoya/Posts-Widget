@@ -201,6 +201,11 @@ class Featured_Posts_Widget extends WP_Widget {
                 'type' => 'checkbox',
                 'label' => 'Category'
             ),
+            array(
+                'field_id' => 'show_tags',
+                'type' => 'checkbox',
+                'label' => 'Tags'
+            ),
         );
         
         
