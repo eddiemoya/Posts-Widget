@@ -100,7 +100,7 @@ class Posts_Widget extends WP_Widget {
         $template = $this->get_template($instance);
         //echo "<pre>";print_r($wp_queryl);echo "</pre>";
         //$before_widget = $this->add_class($before_widget, $instance['span']);
-        //echo "$template";
+        //echo $template;
         echo $before_widget;
         include($template);
         echo $after_widget;
@@ -129,46 +129,47 @@ class Posts_Widget extends WP_Widget {
         
         $filter = $instance['filter-by'];
         
-        if($filter == 'automatic'){
-            $cat = get_query_var('cat');
-            if(!empty($cat)){
-                $filter == 'category';
-                $instance['category'] = '_automatic';
+        if($filter != "none") {
+            if($filter == 'automatic'){
+                $cat = get_query_var('cat');
+                if(!empty($cat)){
+                    $filter == 'category';
+                    $instance['category'] = '_automatic';
+                }
+                $user = get_query_var('author');
+                if(!empty($user)){
+                    $filter == 'author';
+                    $instance['author'] = '_automatic';
+                }
             }
-            $user = get_query_var('author');
-            if(!empty($user)){
-                $filter == 'author';
-                $instance['author'] = '_automatic';
-            }
-        }
         
         
-        if($filter == 'category'){
-            $query['cat'] = $instance['category'];
+            if($filter == 'category'){
+                $query['cat'] = $instance['category'];
             
-            if($query['cat'] == '_automatic' && isset(get_queried_object()->term_id)){
-                $query['cat'] = get_queried_object()->term_id;
-            }
+                if($query['cat'] == '_automatic' && isset(get_queried_object()->term_id)){
+                    $query['cat'] = get_queried_object()->term_id;
+                }
             
-            if(isset($instance['subcategory'])){
-                $query['cat'] = $instance['subcategory'];
+                if(isset($instance['subcategory'])){
+                    $query['cat'] = $instance['subcategory'];
+                }
             }
-        }
         
-        
-        if($filter == 'author'){
-            $query['author'] = $instance['author'];
-            if($author == '_automatic'){
-                $query['author'] = get_query_var('author');
+            if($filter == 'author'){
+                $query['author'] = $instance['author'];
+                if($author == '_automatic'){
+                    $query['author'] = get_query_var('author');
+                }
             }
-        }
 
-        if ($filter == 'manual') {
-            if($instance['limit'] == 1){
-                $query['p'] = $instance['post__in_1'];
-            } else {
-                for ($i = 1; $i < $instance['limit'] + 1; $i++) {
-                    $query['post__in'][] = $instance['post__in_' . ($i)];
+            if ($filter == 'manual') {
+                if($instance['limit'] == 1){
+                    $query['p'] = $instance['post__in_1'];
+                } else {
+                    for ($i = 1; $i < $instance['limit'] + 1; $i++) {
+                        $query['post__in'][] = $instance['post__in_' . ($i)];
+                    }
                 }
             }
         }
@@ -472,6 +473,7 @@ class Posts_Widget extends WP_Widget {
                     'manual' => 'Manual',
                     'category' => 'Category',
                     'author' => 'Author',
+                    'none' => 'No Filter (Sort by Date)'
                 )
             )
         );
