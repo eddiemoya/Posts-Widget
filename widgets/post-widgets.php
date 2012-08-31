@@ -181,7 +181,6 @@ class Posts_Widget extends WP_Widget {
 
                 if($filter == 'category'){
                     $query['cat'] = $instance['category'];
-                    echo $query['cat'];
                     if($query['cat'] == '_automatic' && isset(get_queried_object()->term_id)){
                         $query['cat'] = get_queried_object()->term_id;
                     }
