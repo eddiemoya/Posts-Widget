@@ -103,8 +103,14 @@ class Posts_Widget extends WP_Widget {
         //echo "$template";
         echo $before_widget;
         include($template);
-        echo $after_widget;
 
+        echo $after_widget;
+        ?>
+        <section class="pagination">
+            <?php echo posts_nav_link(); ?>
+        </section>
+        <?
+        
         wp_reset_query();
     }
     
