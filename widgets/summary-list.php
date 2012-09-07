@@ -7,35 +7,35 @@ Author: Eddie Moya
 /**
  * IMPORTANT: Change the class name for each widget
  */    
-class Featured_Posts_Widget extends WP_Widget {
+class Summary_list_Widget extends WP_Widget {
       
     /**
      * Name for this widget type, should be human-readable - the actual title it will go by.
      * 
      * @var string [REQUIRED]
      */
-    var $widget_name = 'Posts Widget: Featured';
+    var $widget_name = 'Posts Widget: Summary List';
    
     /**
      * Root id for all widgets of this type. Will be automatically generate if not set.
      * 
      * @var string [OPTIONAL]. FALSE by default.
      */
-    var $id_base = 'featured_post';
+    var $id_base = 'summary';
     
     /**
      * Shows up under the widget in the admin interface
      * 
      * @var string [OPTIONAL]
      */
-    private $description = 'Featured Posts or Questions';
+    private $description = 'Summary List Example';
 
     /**
      * CSS class used in the wrapping container for each instance of the widget on the front end.
      * 
      * @var string [OPTIONAL]
      */
-    private $classname = 'featured-post';
+    private $classname = 'summary-list';
     
     /**
      * Be careful to consider PHP versions. If running PHP4 class name as the contructor instead.
@@ -80,7 +80,6 @@ class Featured_Posts_Widget extends WP_Widget {
         $instance['include_question'] = true;
         $instance['include_post'] = true;
         $instance['include_guide'] = true;
-        $instace['filter-by'] = 'manual';
  		the_widget('Posts_Widget', $instance, $args);
         
     }
@@ -126,10 +125,10 @@ class Featured_Posts_Widget extends WP_Widget {
     }
     
     /**
-     * Generates the form for this widget, in the WordPress admin area.
+     * Generates this form for this widget, in the WordPress admin area.
      * 
      * The use of the helper functions form_field() and form_fields() is not
-     * neccessary, and may sometimes be inhibitive or restrictive.
+     * necessary, and may sometimes be inhibitive or restrictive.
      * 
      * @author Eddie Moya
      * 
@@ -146,12 +145,14 @@ class Featured_Posts_Widget extends WP_Widget {
         $defaults = array(
             'title' => 'Default Value of Text Field',  
             'widget_name' => $this->classname, 
-            'filter-by' => 'manual',
-            'limit' => 1);
+            'filter-by' => 'manual');
         
         /* Merge saved input values with default values */
-        $instance = wp_parse_args((array) $instance, $defaults);     
- 
+        $instance = wp_parse_args((array) $instance, $defaults);  
+
+        if (isset($instance['show_title']) || isset($instance['show_subtitle']) || isset($instance['show_share'])) {
+            ?><p><strong>General Options:</strong></p><?php        
+        }
         $fields = array();
         if(isset($instance['show_title'])) {
             $fields[] = array(
@@ -168,7 +169,6 @@ class Featured_Posts_Widget extends WP_Widget {
                 'label' => 'Sub-Title'
             );
         }
-        
        
         if(isset($instance['show_share'])) {
             $fields[] =  array(
@@ -184,8 +184,9 @@ class Featured_Posts_Widget extends WP_Widget {
         $this->form_fields($fields, $instance);
         ?><p><strong>Display Options:</strong></p><?php
 
-        ?><p><label>Show:</label></p><?php
         
+
+        /* Example of multiple inputs at once. */
         $show_options = array(
             array(
                 'field_id' => 'show_title',
@@ -198,52 +199,14 @@ class Featured_Posts_Widget extends WP_Widget {
                 'label' => 'Sub-Title'
             ),
             array(
-                'field_id' => 'show_category',
+                'field_id' => 'show_date',
                 'type' => 'checkbox',
-                'label' => 'Category'
+                'label' => 'Date<br />'
             ),
-            array(
-                'field_id' => 'show_tags',
-                'type' => 'checkbox',
-                'label' => 'Tags'
-            ),
-        );
-        
-        
-        $this->form_fields($show_options, $instance, true);
-        
-        
-        $show_options = array(
-            array(
-                'field_id' => 'show_content',
-                'type' => 'checkbox',
-                'label' => 'Post Content'
-            ),
-            array(
-                'field_id' => 'show_comment_count',
-                'type' => 'checkbox',
-                'label' => 'Response Count'
-            ),
-        );
-        
-        
-        $this->form_fields($show_options, $instance, true);
-        
-        $show_options = array(
             array(
                 'field_id' => 'show_share',
                 'type' => 'checkbox',
                 'label' => 'Share Icons'
-            ),
-            array(
-                'field_id' => 'show_date',
-                'type' => 'checkbox',
-                'label' => 'Date'
-            ),
-            array(
-                'field_id' => 'show_thumbnail',
-                'type' => 'checkbox',
-                'label' => 'Featured Image'
             ),
             array(
                 'field_id' => 'widget_name',
@@ -255,32 +218,104 @@ class Featured_Posts_Widget extends WP_Widget {
                 'type' => 'hidden',
                 'label' => ''
             ),
-        );   
-        
-        $this->form_fields($show_options, $instance, true);
-
-        ?><p><strong>Query Options:</strong></p><?php
-        
-        for ($i = 1; $i < $instance['limit']+1; $i++) {
-            $query_options[] = array(
-                'field_id' => "post__in_" . ($i),
-                'type' => 'text',
-                'label' => "Post ID #" . ($i),
-            );
-        }
-
-        $this->form_fields($query_options, $instance);
-        
-        $limit = array(
-            array(
-                'field_id' => 'limit',
-                'type' => 'select',
-                'label' => 'Number of posts',
-                'options' => range(0, 2)
-            )
         );
         
-        $this->form_fields($limit, $instance);
+        
+        $this->form_fields($show_options, $instance, true);
+            $query_options = array(
+                array(
+                    'field_id' => 'filter-by',
+                    'type' => 'select',
+                    'label' => 'Filter By (save to update)',
+                    'options' => array (
+                        'manual' => 'Selected Content',
+                        'none' => 'Recent Content',
+                    )
+                ),
+                array(
+                    'field_id' => 'list_style',
+                    'type' => 'select',
+                    'label' => 'Post Header Display',
+                    'options' => array (
+                        'none' => 'None',
+                        'post-type' => 'Show Post Type',
+                        'show-category' => 'Show Category'
+                    )
+                ),
+                array(
+                    'field_id' => 'limit',
+                    'type' => 'select',
+                    'label' => 'Number of posts',
+                    'options' => range(0, 10)
+                )
+            );
+            if(isset($instance['filter-by'])){
+               if ($instance['filter-by'] == 'manual') {
+                    for ($i = 1; $i < $instance['limit']+1; $i++) {
+                        $query_options[] = array(
+                            'field_id' => "post__in_" . ($i),
+                            'type' => 'text',
+                            'label' => "Post ID #" . ($i),
+                        );
+                    }
+                } else {
+                    $query_options[] = array(
+                        'field_id' => 'recent-filter',
+                        'type' => 'select',
+                        'label' => 'Filter Type (save to update)',
+                        'options' => array (
+                            'category' => 'Category',
+                            'post-type' => 'Post type',
+                            'both' => 'Both'
+                        )
+                    );
+                    if ($instance['recent-filter'] == "category") {
+                        foreach(get_terms('category', "exclude=1") as $category) {
+                            $cat_array[$category->term_id] = ucwords($category->name);
+                        }
+                        $query_options[] = array(
+                            'field_id' => 'category',
+                            'type' => 'select',
+                            'label' => 'Category',
+                            'options' => $cat_array
+                        );
+                    } else if ($instance['recent-filter'] == "post-type") {
+                        $query_options[] = array(
+                            'field_id' => 'filter-post-type',
+                            'type' => 'select',
+                            'label' => 'Post Type Filter',
+                            'options' => array (
+                                'post' => 'Posts',
+                                'question' => 'Questions',
+                                'guide' => 'Guides'
+                            )
+                        );
+                    } else if ($instance['recent-filter'] == "both") {
+                        foreach(get_terms('category', "exclude=1") as $category) {
+                            $cat_array[$category->term_id] = ucwords($category->name);
+                        }
+                        $query_options[] = array(
+                            'field_id' => 'category',
+                            'type' => 'select',
+                            'label' => 'Category',
+                            'options' => $cat_array
+                        );
+                        
+                        $query_options[] = array(
+                            'field_id' => 'filter-post-type',
+                            'type' => 'select',
+                            'label' => 'Post Type Filter',
+                            'options' => array (
+                                'post' => 'Posts',
+                                'question' => 'Questions',
+                                'guide' => 'Guides'
+                            )
+                        );
+                    }
+                }
+            }
+
+            $this->form_fields($query_options, $instance);
 
     }
     
@@ -381,7 +416,6 @@ class Featured_Posts_Widget extends WP_Widget {
                 ?>
                     
                 <?php break;
-
             
             case 'hidden': ?>
                     <input id="<?php echo $this->get_field_id( $field_id ); ?>" type="hidden" style="<?php echo (isset($style)) ? $style : ''; ?>" class="widefat" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value; ?>" />
@@ -399,4 +433,4 @@ class Featured_Posts_Widget extends WP_Widget {
     }
 }
 
-Featured_Posts_Widget::register_widget();
+Summary_List_Widget::register_widget();

@@ -96,11 +96,11 @@ class Posts_Widget extends WP_Widget {
         extract($args);
         
         query_posts($this->query($instance));
-
+        //print_pre($wp_query);
         $template = $this->get_template($instance);
-        //echo "<pre>";print_r($wp_queryl);echo "</pre>";
+        //echo "<pre>";print_r($wp_query);echo "</pre>";
         //$before_widget = $this->add_class($before_widget, $instance['span']);
-        //echo "$template";
+        //echo $template;
         echo $before_widget;
         include($template);
 
@@ -122,64 +122,101 @@ class Posts_Widget extends WP_Widget {
     function query($instance){
         $query['is_widget'] = $instance;
         
-        //@todo : should be a loop going through all available post types
-        $post_types = array('post', 'guide', 'question');
-        foreach ($post_types as $post_type) {
-            if (isset($instance['include_' . $post_type])) {
-                $query['post_type'][] = $post_type;
+        if($instance['widget_name'] == 'summary-list') {
+            if($instance['filter-by'] == 'none') {
+                if($instance['recent-filter'] == 'category') {
+                    $post_types = array('post', 'guide', 'question');
+                    foreach ($post_types as $post_type) {
+                        $query['post_type'][] = $post_type;
+                    }
+                    if($instance['category']!="") {
+                        $query['cat'] = $instance['category'];
+                    }
+                } else if ($instance['recent-filter'] == 'post-type') {
+                    if($instance['filter-post-type'] != "") {
+                        $query['post_type'][] = $instance['filter-post-type'];
+                    }
+                } else if ($instance['recent-filter'] == 'both') {
+                    if($instance['category'] != "") {
+                        $query['cat'] = $instance['category'];
+                    }
+                    if($instance['filter-post-type'] != "") {
+                        $query['post_type'][] = $instance['filter-post-type'];
+                    }
+                }
+           } else {
+                $post_types = array('post', 'guide', 'question');
+                foreach ($post_types as $post_type) {
+                    $query['post_type'][] = $post_type;
+                }
+                if($instance['limit'] == 1){
+                    $query['p'] = $instance['post__in_1'];
+                } else {
+                    for ($i = 1; $i < $instance['limit'] + 1; $i++) {
+                        $query['post__in'][] = $instance['post__in_' . ($i)];
+                    }
+                }
             }
-        }
-        //$query['is_widget']
+            $query['posts_per_page'] = $instance['limit'];
+        } else {
+            //@todo : should be a loop going through all available post types
+            $post_types = array('post', 'guide', 'question');
+            foreach ($post_types as $post_type) {
+                if (isset($instance['include_' . $post_type])) {
+                    $query['post_type'][] = $post_type;
+                }
+            }
+            //$query['is_widget']
 
-        $query['posts_per_page'] = $instance['limit'];
-        
-        $filter = $instance['filter-by'];
-        
-        if($filter == 'automatic'){
-            $cat = get_query_var('cat');
-            if(!empty($cat)){
-                $filter == 'category';
-                $instance['category'] = '_automatic';
-            }
-            $user = get_query_var('author');
-            if(!empty($user)){
-                $filter == 'author';
-                $instance['author'] = '_automatic';
-            }
-        }
-        
-        
-        if($filter == 'category'){
-            $query['cat'] = $instance['category'];
-            
-            if($query['cat'] == '_automatic' && isset(get_queried_object()->term_id)){
-                $query['cat'] = get_queried_object()->term_id;
-            }
-            
-            if(isset($instance['subcategory'])){
-                $query['cat'] = $instance['subcategory'];
-            }
-        }
-        
-        
-        if($filter == 'author'){
-            $query['author'] = $instance['author'];
-            if($author == '_automatic'){
-                $query['author'] = get_query_var('author');
-            }
-        }
+            $query['posts_per_page'] = $instance['limit'];
 
-        if ($filter == 'manual') {
-            if($instance['limit'] == 1){
-                $query['p'] = $instance['post__in_1'];
-            } else {
-                for ($i = 1; $i < $instance['limit'] + 1; $i++) {
-                    $query['post__in'][] = $instance['post__in_' . ($i)];
+            $filter = $instance['filter-by'];
+            if($filter != "none") {
+                if($filter == 'automatic'){
+                    $cat = get_query_var('cat');
+                    if(!empty($cat)){
+                        $filter == 'category';
+                        $instance['category'] = '_automatic';
+                    }
+                    $user = get_query_var('author');
+                    if(!empty($user)){
+                        $filter == 'author';
+                        $instance['author'] = '_automatic';
+                    }
+                }
+
+                if($filter == 'category'){
+                    $query['cat'] = $instance['category'];
+                    if($query['cat'] == '_automatic' && isset(get_queried_object()->term_id)){
+                        $query['cat'] = get_queried_object()->term_id;
+                    }
+
+                    if(isset($instance['subcategory'])){
+                        $query['cat'] = $instance['subcategory'];
+                    }
+                }
+
+                if($filter == 'author'){
+                    $query['author'] = $instance['author'];
+                    if($author == '_automatic'){
+                        $query['author'] = get_query_var('author');
+                    }
+                }
+
+                if ($filter == 'manual') {
+                    if($instance['limit'] == 1){
+                        $query['p'] = $instance['post__in_1'];
+                    } else {
+                        for ($i = 1; $i < $instance['limit'] + 1; $i++) {
+                            $query['post__in'][] = $instance['post__in_' . ($i)];
+                        }
+                    }
                 }
             }
         }
+        
         //$q = get_queried_object();
-        //echo "<pre>";print_r($wp_query);echo "</pre>";
+        //echo "<pre>";print_r($query);echo "</pre>";
         return $query;
     }
 
@@ -478,6 +515,7 @@ class Posts_Widget extends WP_Widget {
                     'manual' => 'Manual',
                     'category' => 'Category',
                     'author' => 'Author',
+                    'none' => 'No Filter (Sort by Date)'
                 )
             )
         );

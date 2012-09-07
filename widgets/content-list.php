@@ -77,7 +77,9 @@ class Content_List_Widget extends WP_Widget {
      */
     public function widget( $args, $instance ){
 
-
+        $instance['include_question'] = true;
+        $instance['include_post'] = true;
+        $instance['include_guide'] = true;
  		the_widget('Posts_Widget', $instance, $args);
         
     }
@@ -123,10 +125,10 @@ class Content_List_Widget extends WP_Widget {
     }
     
     /**
-     * Generates the form for this widget, in the WordPress admin area.
+     * Generates this form for this widget, in the WordPress admin area.
      * 
      * The use of the helper functions form_field() and form_fields() is not
-     * neccessary, and may sometimes be inhibitive or restrictive.
+     * necessary, and may sometimes be inhibitive or restrictive.
      * 
      * @author Eddie Moya
      * 
