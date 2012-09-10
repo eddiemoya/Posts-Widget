@@ -238,6 +238,8 @@ class Results_List_Widget extends WP_Widget {
                 )
             ),
         );
+        
+        $this->form_fields($template, $instance);
 
         $fields = array(
             array(
