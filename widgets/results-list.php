@@ -78,14 +78,10 @@ class Results_List_Widget extends WP_Widget {
     public function widget( $args, $instance ){
 
         if(!isset($instance['query_type']) || $instance['query_type'] == 'posts'){
-
             the_widget('Posts_Widget', $instance, $args);
-
         } else {
-
             if(function_exists('get_users_by_taxonomy')){
                 if(isset(get_queried_object()->term_id) && function_exists('get_partial')){
-
                     if(isset($_REQUEST['filter-sub-category']) || isset($_REQUEST['filter-category'])){
                         $category = (isset($_REQUEST['filter-sub-category'])) ? $_REQUEST['filter-sub-category'] : $_REQUEST['filter-category'];
                     } else {
@@ -93,13 +89,68 @@ class Results_List_Widget extends WP_Widget {
                     }
                     $users = get_users_by_taxonomy('category', $category);
                     get_partial('widgets/results-list/author-archive', array('users' => $users));
+                } else if ($instance['all_users']) {
+                    global $wpdb;
+                    $roles = new WP_Roles();
+                    $roles = $roles->role_objects;
+                    $experts = array();
+                    foreach($roles as $role) {
+                        if($role->has_cap("post_as_expert"))
+                            $experts[] = trim($role->name);
+                    }
+                    $query = $this->get_user_role_tax_intersection(array('hide_untaxed' => false, 'roles' => $experts));
+                    $users = $wpdb->get_results($wpdb->prepare($query));
+                    get_partial('widgets/results-list/author-filtered-list', array('users' => $users));
                 }
-                
             }
+        }    
+    }
+    
+    /**
+     * Generates query for user results list.
+     * 
+     * @author Eddie Moya, Jason Corradino
+     * 
+     * @param array $args
+     */
+    function get_user_role_tax_intersection($args = array()){
+        global $wpdb;
+
+        $default_args = array(
+            'hide_untaxed' => true,
+            'terms'         => array(),
+            'roles'         => array()
+        );
+
+        $args = array_merge($default_args, $args);
+
+        $roles = implode("|", $args['roles']);
+
+        $query['SELECT'] = 'SELECT DISTINCT u.ID, u.user_login, u.user_nicename, u.user_email, u.display_name, m2.meta_value as role, GROUP_CONCAT(DISTINCT m.meta_value) as terms from wp_users as u';
+
+        $query['JOIN'] = array(
+            "JOIN wp_usermeta AS m  ON u.ID = m.user_id AND m.meta_key = 'um-taxonomy-category' JOIN wp_usermeta AS m2 ON u.ID = m2.user_id AND m2.meta_value REGEXP '{$roles}'",
+        );
+
+        $query['GROUP'] = 'GROUP BY u.ID';
+        $query['ORDER'] = 'ORDER BY m.meta_key';
+
+        if($args['hide_untaxed'] == false){
+            $query['JOIN'][0] = 'LEFT '. $query['JOIN'][0];
         }
 
-        
+        if(!empty($args['terms'])){
+            $terms = implode(', ', $args['terms']);
+            $query['JOIN'][0] .= 'AND m.meta_value IN ($terms)';
+        }
+
+        $query['JOIN'] = implode(' ', $query['JOIN']);
+
+        //print_r($query);
+        return  implode(' ', $query);
+
     }
+    
     
     /**
      * Data validation. 
@@ -192,7 +243,7 @@ class Results_List_Widget extends WP_Widget {
                 'type' => 'hidden',
                 'label' => ''
             ),
-             array(
+            array(
                 'field_id' => 'category',
                 'type' => 'hidden',
                 'label' => ''
@@ -203,6 +254,14 @@ class Results_List_Widget extends WP_Widget {
                 'label' => ''
             )
         );
+        
+        if($instance['query_type'] == 'users') {
+            $fields[] = array(
+                'field_id' => 'all_users',
+                'type' => 'checkbox',
+                'label' => 'Filter through all users'
+            );
+        }
 
         $this->form_fields($fields, $instance);
     }
