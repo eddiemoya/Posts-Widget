@@ -102,9 +102,11 @@ class Posts_Widget extends WP_Widget {
         //$before_widget = $this->add_class($before_widget, $instance['span']);
         //echo $template;
         echo $before_widget;
-        include($template);
-        echo $after_widget;
 
+        include($template);
+
+        echo $after_widget;        
+        
         wp_reset_query();
     }
     
@@ -153,6 +155,8 @@ class Posts_Widget extends WP_Widget {
             }
             $query['posts_per_page'] = $instance['limit'];
         } else {
+
+            
             //@todo : should be a loop going through all available post types
             $post_types = array('post', 'guide', 'question');
             foreach ($post_types as $post_type) {

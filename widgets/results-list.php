@@ -78,6 +78,11 @@ class Results_List_Widget extends WP_Widget {
     public function widget( $args, $instance ){
 
         if(!isset($instance['query_type']) || $instance['query_type'] == 'posts'){
+            global $wp_query;
+            //echo "<pre>";print_r($wp_query);echo "</pre>";
+            $instance['include_question'] = true;
+            $instance['include_post'] = true;
+            $instance['include_guide'] = true;
             the_widget('Posts_Widget', $instance, $args);
         } else {
             if(function_exists('get_users_by_taxonomy')){
@@ -220,7 +225,19 @@ class Results_List_Widget extends WP_Widget {
             'limit' => '10'
         );
 
-        $instance = wp_parse_args((array) $instance, $defaults);    
+        $instance = wp_parse_args((array) $instance, $defaults);
+        
+        $template = array(  
+            array(
+                'field_id' => 'template',
+                'type' => 'select',
+                'label' => 'Select the template to use',
+                'options' => array(
+                    'normal' => 'Normal',
+                    'featured' => 'Featured'
+                )
+            ),
+        );
 
         $fields = array(
             array(
