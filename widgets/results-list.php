@@ -146,7 +146,7 @@ class Results_List_Widget extends WP_Widget {
 
         if(!empty($args['terms'])){
             $terms = implode(', ', $args['terms']);
-            $query['JOIN'][0] .= 'AND m.meta_value IN ($terms)';
+            $query['JOIN'][0] .= "AND m.meta_value IN ($terms)";
         }
 
         $query['JOIN'] = implode(' ', $query['JOIN']);
