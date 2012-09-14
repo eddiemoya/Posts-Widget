@@ -2,7 +2,7 @@
 /*
 Plugin Name: Posts Widget Plugin
 Description: Starting point for building widgets quickly and easier
-Version: 0.6
+Version: 0.9.1
 Author: Eddie Moya
 Author URI: http://eddiemoya.com/
  */
