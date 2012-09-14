@@ -80,11 +80,13 @@ class Results_List_Widget extends WP_Widget {
         if(!isset($instance['query_type']) || $instance['query_type'] == 'posts'){
             global $wp_query;
             //echo "<pre>";print_r($wp_query);echo "</pre>";
-            $instance['include_question'] = true;
-            $instance['include_post'] = true;
-            $instance['include_guide'] = true;
+            // $instance['include_question'] = true;
+            // $instance['include_post'] = true;
+            // $instance['include_guide'] = true;
             the_widget('Posts_Widget', $instance, $args);
         } else {
+
+            echo $args['before_widget'];
             if(function_exists('get_users_by_taxonomy')){
                 if(isset(get_queried_object()->term_id) && function_exists('get_partial')){
                     if(isset($_REQUEST['filter-sub-category']) || isset($_REQUEST['filter-category'])){
@@ -108,6 +110,7 @@ class Results_List_Widget extends WP_Widget {
                     get_partial('widgets/results-list/author-filtered-list', array('users' => $users));
                 }
             }
+            echo $args['after_widget'];
         }    
     }
     
