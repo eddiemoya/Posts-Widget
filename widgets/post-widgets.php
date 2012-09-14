@@ -157,12 +157,18 @@ class Posts_Widget extends WP_Widget {
         } else {
 
             
-            //@todo : should be a loop going through all available post types
+            //Allow the natural query outside the widget to dictate the post type if one is not explicitly selected.
+            $queried_types = get_query_var('post_type');
             $post_types = array('post', 'guide', 'question');
-            foreach ($post_types as $post_type) {
-                if (isset($instance['include_' . $post_type])) {
-                    $query['post_type'][] = $post_type;
+
+            if(empty($queried_types)) {
+                foreach ($post_types as $post_type) {
+                    if (isset($instance['include_' . $post_type])) {
+                        $query['post_type'][] = $post_type;
+                    }
                 }
+            } else {
+                $query['post_type'] = $queried_types;
             }
             //$query['is_widget']
 
