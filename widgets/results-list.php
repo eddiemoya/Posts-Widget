@@ -80,9 +80,10 @@ class Results_List_Widget extends WP_Widget {
         if(!isset($instance['query_type']) || $instance['query_type'] == 'posts'){
             global $wp_query;
             //echo "<pre>";print_r($wp_query);echo "</pre>";
-            // $instance['include_question'] = true;
-            // $instance['include_post'] = true;
-            // $instance['include_guide'] = true;
+             // $instance['include_question'] = false;
+             // $instance['include_post'] = false;
+             // $instance['include_guide'] = false;
+            $instance['paged'] = true;
             the_widget('Posts_Widget', $instance, $args);
         } else {
 
