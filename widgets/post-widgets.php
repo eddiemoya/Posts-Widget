@@ -175,7 +175,10 @@ class Posts_Widget extends WP_Widget {
                 $query['paged'] = get_query_var('paged');
             }
 
-            $query['posts_per_page'] = $instance['limit'];
+            $limit = get_query_var('posts_per_page');
+
+            $query['posts_per_page'] = (empty($limit)) ? $instance['limit'] : $limit;
+
 
             $filter = $instance['filter-by'];
             if($filter != "none") {
