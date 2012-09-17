@@ -155,22 +155,25 @@ class Posts_Widget extends WP_Widget {
             }
             $query['posts_per_page'] = $instance['limit'];
         } else {
-
             
-            //Allow the natural query outside the widget to dictate the post type if one is not explicitly selected.
+            //Allow chosen post types to override the natural query.
             $queried_types = get_query_var('post_type');
             $post_types = array('post', 'guide', 'question');
 
-            if(empty($queried_types)) {
+            if(!empty($instance['include_post']) || !empty($instance['include_question']) || !empty($instance['include_guide'])){
                 foreach ($post_types as $post_type) {
                     if (isset($instance['include_' . $post_type])) {
                         $query['post_type'][] = $post_type;
                     }
                 }
             } else {
-                $query['post_type'] = $queried_types;
+                $query['post_type'] = (!empty($queried_types)) ? $queried_types : $post_types;
             }
             //$query['is_widget']
+
+            if($instance['paged']){
+                $query['paged'] = get_query_var('paged');
+            }
 
             $query['posts_per_page'] = $instance['limit'];
 
