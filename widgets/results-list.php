@@ -83,7 +83,7 @@ class Results_List_Widget extends WP_Widget {
              // $instance['include_question'] = false;
              // $instance['include_post'] = false;
              // $instance['include_guide'] = false;
-            $instance['paged'] = true;
+            //$instance['paged'] = true;
             the_widget('Posts_Widget', $instance, $args);
         } else {
 
