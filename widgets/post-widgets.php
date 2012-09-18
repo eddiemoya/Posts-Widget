@@ -167,14 +167,17 @@ class Posts_Widget extends WP_Widget {
                     }
                 }
             } else {
-  
-                    $query['post_type'] = (!empty($queried_types)) ? $queried_types : $post_types;
+                if(!empty($queried_types)){
+                    $query['post_type'] = $queried_types;
+                }
             }
 
             //$query['is_widget']
 
-            if(!$instance['paged']){
-                $query['paged'] = get_query_var('paged');
+            if($instance['pagination'] != false || !isset($instance['pagination'])){
+                $query['paged'] = get_query_var('paged'); 
+            } else {
+                $query['paged'] = 1;
             }
 
             $limit = get_query_var('posts_per_page');
