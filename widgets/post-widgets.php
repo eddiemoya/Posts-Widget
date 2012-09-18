@@ -171,7 +171,7 @@ class Posts_Widget extends WP_Widget {
             }
             //$query['is_widget']
 
-            if($instance['paged']){
+            if(!$instance['paged']){
                 $query['paged'] = get_query_var('paged');
             }
 
