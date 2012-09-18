@@ -225,8 +225,7 @@ class Results_List_Widget extends WP_Widget {
             'query_type' => 'posts',
             'widget_name' => $this->classname, 
             'filter-by' => 'category',
-            'category' => '_automatic',
-            'limit' => '10'
+            'category' => '_automatic'
         );
 
         $instance = wp_parse_args((array) $instance, $defaults);
@@ -262,11 +261,6 @@ class Results_List_Widget extends WP_Widget {
                 'type' => 'hidden',
                 'label' => ''
             ),
-            array(
-                'field_id' => 'limit',
-                'type' => 'hidden',
-                'label' => ''
-            )
         );
         
         if($instance['query_type'] == 'users') {
