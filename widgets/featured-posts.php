@@ -80,7 +80,7 @@ class Featured_Posts_Widget extends WP_Widget {
         $instance['include_question'] = true;
         $instance['include_post'] = true;
         $instance['include_guide'] = true;
-        $instace['filter-by'] = 'manual';
+        $instance['pagination'] = false;
  		the_widget('Posts_Widget', $instance, $args);
         
     }
@@ -147,6 +147,7 @@ class Featured_Posts_Widget extends WP_Widget {
             'title' => '',  
             'widget_name' => $this->classname, 
             'filter-by' => 'manual',
+            'category' => '_automatic',
             'limit' => 1);
         
         /* Merge saved input values with default values */
@@ -252,6 +253,11 @@ class Featured_Posts_Widget extends WP_Widget {
             ),
             array(
                 'field_id' => 'filter-by',
+                'type' => 'hidden',
+                'label' => ''
+            ),
+            array(
+                'field_id' => 'category',
                 'type' => 'hidden',
                 'label' => ''
             ),
