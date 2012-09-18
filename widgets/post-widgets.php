@@ -98,7 +98,7 @@ class Posts_Widget extends WP_Widget {
         query_posts($this->query($instance));
         //print_pre($wp_query);
         $template = $this->get_template($instance);
-       // echo "<pre>";print_r($wp_query);echo "</pre>";
+       //echo "<pre>";print_r($wp_query);echo "</pre>";
         //$before_widget = $this->add_class($before_widget, $instance['span']);
         //echo $template;
         echo $before_widget;
@@ -167,8 +167,10 @@ class Posts_Widget extends WP_Widget {
                     }
                 }
             } else {
-                $query['post_type'] = (!empty($queried_types)) ? $queried_types : $post_types;
+  
+                    $query['post_type'] = (!empty($queried_types)) ? $queried_types : $post_types;
             }
+
             //$query['is_widget']
 
             if(!$instance['paged']){
