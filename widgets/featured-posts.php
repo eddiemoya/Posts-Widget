@@ -144,7 +144,7 @@ class Featured_Posts_Widget extends WP_Widget {
         
         /* Setup default values for form fields - associtive array, keys are the field_id's */
         $defaults = array(
-            'title' => 'Default Value of Text Field',  
+            'title' => '',  
             'widget_name' => $this->classname, 
             'filter-by' => 'manual',
             'limit' => 1);
