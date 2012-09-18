@@ -98,7 +98,7 @@ class Posts_Widget extends WP_Widget {
         query_posts($this->query($instance));
         //print_pre($wp_query);
         $template = $this->get_template($instance);
-        //echo "<pre>";print_r($wp_query);echo "</pre>";
+       // echo "<pre>";print_r($wp_query);echo "</pre>";
         //$before_widget = $this->add_class($before_widget, $instance['span']);
         //echo $template;
         echo $before_widget;
@@ -177,7 +177,7 @@ class Posts_Widget extends WP_Widget {
 
             $limit = get_query_var('posts_per_page');
 
-            $query['posts_per_page'] = (empty($limit)) ? $instance['limit'] : $limit;
+            $query['posts_per_page'] = (!empty($instance['limit'])) ? $instance['limit'] : $limit;
 
 
             $filter = $instance['filter-by'];
