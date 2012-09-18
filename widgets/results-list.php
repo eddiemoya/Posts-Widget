@@ -231,21 +231,13 @@ class Results_List_Widget extends WP_Widget {
 
         $instance = wp_parse_args((array) $instance, $defaults);
         
-        $template = array(  
-            array(
-                'field_id' => 'template',
-                'type' => 'select',
-                'label' => 'Select the template to use',
-                'options' => array(
-                    'normal' => 'Normal',
-                    'featured' => 'Featured'
-                )
-            ),
-        );
         
-        $this->form_fields($template, $instance);
-
         $fields = array(
+            array(
+                'field_id' => 'show_filters',
+                'type' => 'checkbox',
+                'label' => 'Show Filtering/Sorting Dropdowns',
+            ),
             array(
                 'field_id' => 'query_type',
                 'type' => 'select',
@@ -253,9 +245,8 @@ class Results_List_Widget extends WP_Widget {
                 'options' => array(
                     'posts' => 'Posts',
                     'users' => 'Users'
-                    )
-                ),
-             
+                )
+            ),             
             array(
                 'field_id' => 'widget_name',
                 'type' => 'hidden',
