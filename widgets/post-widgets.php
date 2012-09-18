@@ -415,13 +415,10 @@ class Posts_Widget extends WP_Widget {
             
         }
         
-        if($value && !isset($new_instance[$key])){
-            unset($instance[$key]);
-        }
         //Handle unchecked checkboxes
         foreach($instance as $key => $value){
-            if($value && !isset($new_instance[$key])){
-                $instance[$key] = false;
+            if($value == 'on' && !isset($new_instance[$key])){
+                $instance[$key] = '';
             }
 
         }
@@ -816,10 +813,25 @@ class Posts_Widget extends WP_Widget {
 
 Posts_Widget::register_widget();
 
-function is_widget(){
-    global $wp_query;
-    $is_widget = (isset($wp_query->query_vars['is_widget'])) ? (object)$wp_query->query_vars['is_widget'] : false;
 
-    return $is_widget;
+/**
+ * Needs to be moved into a functions.php file.
+ */
+function is_widget($property = null){
+    global $wp_query;
+
+    $return = (isset($wp_query->query_vars['is_widget'])) ? (object)$wp_query->query_vars['is_widget'] : false;
+    
+    if($return){
+        if(isset($property)){
+            if(isset($return->$property)){
+                $return = $return->$property;
+            } else {
+                $return = false;
+            }
+        }
+    }
+
+    return $return;
 }
 
