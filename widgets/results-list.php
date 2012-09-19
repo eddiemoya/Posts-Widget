@@ -154,11 +154,11 @@ class Results_List_Widget extends WP_Widget {
 
         $roles = implode("|", $args['roles']);
 
-        $query['SELECT'] = 'SELECT DISTINCT u.ID, u.user_login, u.user_nicename, u.user_email, u.display_name, m2.meta_value AS role, GROUP_CONCAT(DISTINCT m.meta_value) AS terms FROM wp_users AS u';
+        $query['SELECT'] = "SELECT DISTINCT u.ID, u.user_login, u.user_nicename, u.user_email, u.display_name, m2.meta_value AS role, GROUP_CONCAT(DISTINCT m.meta_value) AS terms FROM {$wpdb->prefix}users AS u";
 
         $query['JOIN'] = array(
-            "JOIN wp_usermeta AS m  ON u.ID = m.user_id AND m.meta_key = 'um-taxonomy-category'",
-            "JOIN wp_usermeta AS m2 ON u.ID = m2.user_id AND m2.meta_key = '{$wpdb->prefix}capabilities' AND m2.meta_value REGEXP '{$roles}'"
+            "JOIN {$wpdb->prefix}usermeta AS m  ON u.ID = m.user_id AND m.meta_key = 'um-taxonomy-category'",
+            "JOIN {$wpdb->prefix}usermeta AS m2 ON u.ID = m2.user_id AND m2.meta_key = '{$wpdb->prefix}capabilities' AND m2.meta_value REGEXP '{$roles}'"
         );
 
         $query['GROUP'] = 'GROUP BY u.ID';
