@@ -79,42 +79,61 @@ class Results_List_Widget extends WP_Widget {
 
         if(!isset($instance['query_type']) || $instance['query_type'] == 'posts'){
             global $wp_query;
-            //echo "<pre>";print_r($wp_query);echo "</pre>";
-             // $instance['include_question'] = false;
-             // $instance['include_post'] = false;
-             // $instance['include_guide'] = false;
-            //$instance['paged'] = true;
             the_widget('Posts_Widget', $instance, $args);
+
         } else {
 
             echo $args['before_widget'];
+
             if(function_exists('get_users_by_taxonomy')){
-                if(isset(get_queried_object()->term_id) && function_exists('get_partial')){
+                if(isset(get_queried_object()->term_id) && function_exists('get_partial') && !$instance['all_users']){
+
                     if(isset($_REQUEST['filter-sub-category']) || isset($_REQUEST['filter-category'])){
                         $category = (isset($_REQUEST['filter-sub-category'])) ? $_REQUEST['filter-sub-category'] : $_REQUEST['filter-category'];
-                    } else {
-                        $category = get_queried_object()->term_id;
-                    }
-                    $users = get_users_by_taxonomy('category', $category);
+                    } else {  $category = get_query_var('cat'); }
+
+                    $users = $this->query_users(array('terms' => array($category), 'cap' => 'post_as_expert'));
                     get_partial('widgets/results-list/author-archive', array('users' => $users));
-                } else if ($instance['all_users']) {
-                    global $wpdb;
-                    $roles = new WP_Roles();
-                    $roles = $roles->role_objects;
-                    $experts = array();
-                    foreach($roles as $role) {
-                        if($role->has_cap("post_as_expert"))
-                            $experts[] = trim($role->name);
-                    }
-                    $query = $this->get_user_role_tax_intersection(array('hide_untaxed' => false, 'roles' => $experts));
-                    $users = $wpdb->get_results($wpdb->prepare($query));
-                    get_partial('widgets/results-list/author-filtered-list', array('users' => $users));
+
+                } else {
+                    $users = $this->query_users(array('hide_untaxed' => false, 'cap' => 'post_as_expert'));
+                    get_partial('widgets/results-list/author-archive', array('users' => $users));
                 }
             }
             echo $args['after_widget'];
         }    
     }
-    
+
+    /**
+     * 
+     */
+    public function query_users($args){
+        global $wpdb;
+        $args['roles'] = self::get_roles_by_capability($args['cap']);
+        unset($args['cap']);
+
+        $query = self::get_user_role_tax_intersection($args);
+        $users = $wpdb->get_results($wpdb->prepare($query));
+
+        return $users;
+    }
+
+    /**
+     * 
+     */
+    public function get_roles_by_capability($capability){
+        
+        $all_roles = new WP_Roles();
+        $all_roles = $all_roles->role_objects;
+
+        $roles = array();
+        foreach((array)$all_roles as $role) {
+            if($role->has_cap($capability))
+                $roles[] = trim($role->name);
+        }
+        return $roles;
+    }
+
     /**
      * Generates query for user results list.
      * 
@@ -128,29 +147,32 @@ class Results_List_Widget extends WP_Widget {
         $default_args = array(
             'hide_untaxed' => true,
             'terms'         => array(),
-            'roles'         => array()
+            'roles'         => array(),
         );
 
         $args = array_merge($default_args, $args);
 
         $roles = implode("|", $args['roles']);
 
-        $query['SELECT'] = 'SELECT DISTINCT u.ID, u.user_login, u.user_nicename, u.user_email, u.display_name, m2.meta_value as role, GROUP_CONCAT(DISTINCT m.meta_value) as terms from wp_users as u';
+        $query['SELECT'] = 'SELECT DISTINCT u.ID, u.user_login, u.user_nicename, u.user_email, u.display_name, m2.meta_value AS role, GROUP_CONCAT(DISTINCT m.meta_value) AS terms FROM wp_users AS u';
 
         $query['JOIN'] = array(
-            "JOIN wp_usermeta AS m  ON u.ID = m.user_id AND m.meta_key = 'um-taxonomy-category' JOIN wp_usermeta AS m2 ON u.ID = m2.user_id AND m2.meta_value REGEXP '{$roles}'",
+            "JOIN wp_usermeta AS m  ON u.ID = m.user_id AND m.meta_key = 'um-taxonomy-category'",
+            "JOIN wp_usermeta AS m2 ON u.ID = m2.user_id AND m2.meta_key = '{$wpdb->prefix}capabilities' AND m2.meta_value REGEXP '{$roles}'"
         );
 
         $query['GROUP'] = 'GROUP BY u.ID';
-        $query['ORDER'] = 'ORDER BY m.meta_key';
+        $query['ORDER'] = 'ORDER BY u.user_nicename';
+
+        $query['ORDER'] = (isset($args['order']))? $args['order'] : 'DESC';
 
         if($args['hide_untaxed'] == false){
             $query['JOIN'][0] = 'LEFT '. $query['JOIN'][0];
         }
 
-        if(!empty($args['terms'])){
+        if(!empty($args['terms']) && $args['terms'][0] != 0){
             $terms = implode(', ', $args['terms']);
-            $query['JOIN'][0] .= "AND m.meta_value IN ($terms)";
+            $query['JOIN'][0] .= " AND m.meta_value IN ($terms)";
         }
 
         $query['JOIN'] = implode(' ', $query['JOIN']);
@@ -267,7 +289,7 @@ class Results_List_Widget extends WP_Widget {
             $fields[] = array(
                 'field_id' => 'all_users',
                 'type' => 'checkbox',
-                'label' => 'Filter through all users'
+                'label' => 'List All Users (regardless of category)'
             );
         }
 
