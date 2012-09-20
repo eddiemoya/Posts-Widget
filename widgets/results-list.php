@@ -82,7 +82,8 @@ class Results_List_Widget extends WP_Widget {
             the_widget('Posts_Widget', $instance, $args);
 
         } else {
-
+            global $wp_query;
+            $wp_query->query_vars['is_widget'] = $instance;
             echo $args['before_widget'];
 
             if(function_exists('get_users_by_taxonomy')){
@@ -93,11 +94,11 @@ class Results_List_Widget extends WP_Widget {
                     } else {  $category = get_query_var('cat'); }
 
                     $users = $this->query_users(array('terms' => array($category), 'cap' => 'post_as_expert'));
-                    get_partial('widgets/results-list/author-archive', array('users' => $users));
+                    get_partial('widgets/results-list/author-archive', array('users' => $users, 'is_widget' => $instance));
 
                 } else {
                     $users = $this->query_users(array('hide_untaxed' => false, 'cap' => 'post_as_expert'));
-                    get_partial('widgets/results-list/author-archive', array('users' => $users));
+                    get_partial('widgets/results-list/author-archive', array('users' => $users, 'is_widget' => $instance));
                 }
             }
             echo $args['after_widget'];
@@ -257,7 +258,12 @@ class Results_List_Widget extends WP_Widget {
             array(
                 'field_id' => 'show_filters',
                 'type' => 'checkbox',
-                'label' => 'Show Filtering/Sorting Dropdowns',
+                'label' => 'Show Filtering Dropdown',
+            ),
+            array(
+                'field_id' => 'show_sort',
+                'type' => 'checkbox',
+                'label' => 'Show Sorting Dropdown',
             ),
             array(
                 'field_id' => 'query_type',
