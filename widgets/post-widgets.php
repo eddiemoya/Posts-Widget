@@ -98,7 +98,7 @@ class Posts_Widget extends WP_Widget {
         query_posts($this->query($instance));
         //print_pre($wp_query);
         $template = $this->get_template($instance);
-       //echo "<pre>";print_r($wp_query);echo "</pre>";
+       //echo "<pre>";print_r($template);echo "</pre>";
         //$before_widget = $this->add_class($before_widget, $instance['span']);
         //echo $template;
         echo $before_widget;
@@ -180,6 +180,10 @@ class Posts_Widget extends WP_Widget {
                 $query['paged'] = 1;
             }
 
+            if($query['paged'] == 0) {
+                $query['paged'] = 1;
+            }
+
             $limit = get_query_var('posts_per_page');
 
             $query['posts_per_page'] = (!empty($instance['limit'])) ? $instance['limit'] : $limit;
@@ -204,6 +208,9 @@ class Posts_Widget extends WP_Widget {
                     $query['cat'] = $instance['category'];
                     if($query['cat'] == '_automatic' && isset(get_queried_object()->term_id)){
                         $query['cat'] = get_queried_object()->term_id;
+                    } else {
+                        unset($instance['category']);
+                        unset($query['cat']);
                     }
 
                     if(isset($instance['subcategory'])){
@@ -321,8 +328,8 @@ class Posts_Widget extends WP_Widget {
                 );
             }
             
-            
-            $archive_templates = "archive.php";
+            $archive_templates[] = "archive-{$object->post_type}.php";
+            $archive_templates[] = "archive.php";
       
         }
 
