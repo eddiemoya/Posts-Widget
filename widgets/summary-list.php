@@ -77,9 +77,6 @@ class Summary_list_Widget extends WP_Widget {
      */
     public function widget( $args, $instance ){
 
-        $instance['include_question'] = true;
-        $instance['include_post'] = true;
-        $instance['include_guide'] = true;
  		the_widget('Posts_Widget', $instance, $args);
         
     }
@@ -209,6 +206,11 @@ class Summary_list_Widget extends WP_Widget {
                 'label' => 'Share Icons'
             ),
             array(
+                'field_id' => 'show_author',
+                'type' => 'checkbox',
+                'label' => 'Author'
+            ),
+            array(
                 'field_id' => 'widget_name',
                 'type' => 'hidden',
                 'label' => ''
@@ -239,14 +241,14 @@ class Summary_list_Widget extends WP_Widget {
                     'options' => array (
                         'none' => 'None',
                         'post-type' => 'Show Post Type',
-                        'show-category' => 'Show Category'
+                        'category' => 'Show Category'
                     )
                 ),
                 array(
                     'field_id' => 'limit',
                     'type' => 'select',
                     'label' => 'Number of posts',
-                    'options' => range(0, 10)
+                    'options' => range(1, 10)
                 )
             );
             if(isset($instance['filter-by'])){
