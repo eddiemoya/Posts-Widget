@@ -270,7 +270,7 @@ class Summary_list_Widget extends WP_Widget {
                         )
                     );
                     if ($instance['recent-filter'] == "category") {
-                        foreach(get_terms('category', "exclude=1") as $category) {
+                        foreach(get_terms('category') as $category) {
                             $cat_array[$category->term_id] = ucwords($category->name);
                         }
                         $query_options[] = array(
