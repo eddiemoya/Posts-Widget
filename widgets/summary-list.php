@@ -272,6 +272,7 @@ class Summary_list_Widget extends WP_Widget {
                         )
                     );
                     if ($instance['recent-filter'] == "category") {
+                        $cat_array[-1] = "All Categories";
                         foreach(get_terms('category') as $category) {
                             $cat_array[$category->term_id] = ucwords($category->name);
                         }
@@ -293,7 +294,8 @@ class Summary_list_Widget extends WP_Widget {
                             )
                         );
                     } else if ($instance['recent-filter'] == "both") {
-                        foreach(get_terms('category', "exclude=1") as $category) {
+                        $cat_array[-1] = "All Categories";
+                        foreach(get_terms('category') as $category) {
                             $cat_array[$category->term_id] = ucwords($category->name);
                         }
                         $query_options[] = array(
