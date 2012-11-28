@@ -248,16 +248,16 @@ class Summary_list_Widget extends WP_Widget {
                     'field_id' => 'limit',
                     'type' => 'select',
                     'label' => 'Number of posts',
-                    'options' => range(1, 10)
+                    'options' => array_combine(range(1,10),range(1,10))
                 )
             );
             if(isset($instance['filter-by'])){
                if ($instance['filter-by'] == 'manual') {
-                    for ($i = 0; $i < $instance['limit']+1; $i++) {
+                    for ($i = 0; $i < $instance['limit']; $i++) {
                         $query_options[] = array(
-                            'field_id' => "post__in_" . ($i+1),
+                            'field_id' => "post__in_" . ($i),
                             'type' => 'text',
-                            'label' => "Post ID #" . ($i+1),
+                            'label' => "Post ID #" . ($i),
                         );
                     }
                 } else {
