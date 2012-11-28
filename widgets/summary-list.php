@@ -255,9 +255,9 @@ class Summary_list_Widget extends WP_Widget {
                if ($instance['filter-by'] == 'manual') {
                     for ($i = 0; $i < $instance['limit']+1; $i++) {
                         $query_options[] = array(
-                            'field_id' => "post__in_" . ($i),
+                            'field_id' => "post__in_" . ($i+1),
                             'type' => 'text',
-                            'label' => "Post ID #" . ($i),
+                            'label' => "Post ID #" . ($i+1),
                         );
                     }
                 } else {
