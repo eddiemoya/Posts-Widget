@@ -165,7 +165,7 @@ class Results_List_Widget extends WP_Widget {
         $query['GROUP'] = 'GROUP BY u.ID';
         $query['ORDER'] = 'ORDER BY u.user_nicename';
 
-        $query['ORDER'] = (isset($args['order']))? $args['order'] : 'DESC';
+        $query['SORT'] = (isset($args['sort']))? $args['sort'] : 'ASC';
 
         if($args['hide_untaxed'] == false){
             $query['JOIN'][0] = 'LEFT '. $query['JOIN'][0];
