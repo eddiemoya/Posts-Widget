@@ -12,4 +12,5 @@ include (plugin_dir_path(__FILE__) . 'widgets/featured-posts.php');
 include (plugin_dir_path(__FILE__) . 'widgets/content-list.php');
 include (plugin_dir_path(__FILE__) . 'widgets/summary-list.php');
 include (plugin_dir_path(__FILE__) . 'widgets/results-list.php');
+include (plugin_dir_path(__FILE__) . 'widgets/hero-slider.php');
  ?>
