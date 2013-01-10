@@ -183,9 +183,6 @@ class Hero_Slider_Widget extends WP_Widget {
             );
         }
         $this->form_fields($fields, $instance);
-        ?><p><strong>Display Options:</strong></p><?php
-
-        ?><p><label>Show:</label></p><?php
         
         $show_options = array(
             array(
@@ -211,7 +208,7 @@ class Hero_Slider_Widget extends WP_Widget {
         );
         
         
-        $this->form_fields($show_options, $instance, true);
+        //$this->form_fields($show_options, $instance, true);
         
         
         $show_options = array(
@@ -228,24 +225,24 @@ class Hero_Slider_Widget extends WP_Widget {
         );
         
         
-        $this->form_fields($show_options, $instance, true);
+        //$this->form_fields($show_options, $instance, true);
         
         $show_options = array(
-            array(
-                'field_id' => 'show_share',
-                'type' => 'checkbox',
-                'label' => 'Share Icons'
-            ),
-            array(
-                'field_id' => 'show_date',
-                'type' => 'checkbox',
-                'label' => 'Date'
-            ),
-            array(
-                'field_id' => 'show_thumbnail',
-                'type' => 'checkbox',
-                'label' => 'Featured Image'
-            ),
+            // array(
+            //     'field_id' => 'show_share',
+            //     'type' => 'checkbox',
+            //     'label' => 'Share Icons'
+            // ),
+            // array(
+            //     'field_id' => 'show_date',
+            //     'type' => 'checkbox',
+            //     'label' => 'Date'
+            // ),
+            // array(
+            //     'field_id' => 'show_thumbnail',
+            //     'type' => 'checkbox',
+            //     'label' => 'Featured Image'
+            // ),
             array(
                 'field_id' => 'widget_name',
                 'type' => 'hidden',
@@ -406,3 +403,20 @@ class Hero_Slider_Widget extends WP_Widget {
 }
 
 Hero_Slider_Widget::register_widget();
+
+if (class_exists('MultiPostThumbnails')) {
+	new MultiPostThumbnails(
+		array(
+			'label' => 'Hero Slider Image',
+			'id' => 'hero-slider-image',
+			'post_type' => 'post'
+		)
+	);
+	new MultiPostThumbnails(
+		array(
+			'label' => 'Hero Slider Image',
+			'id' => 'hero-slider-image',
+			'post_type' => 'guide'
+		)
+	);
+}
