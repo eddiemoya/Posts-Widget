@@ -244,7 +244,7 @@ class Featured_Posts_Widget extends WP_Widget {
             array(
                 'field_id' => 'show_thumbnail',
                 'type' => 'checkbox',
-                'label' => 'Featured Image'
+                'label' => 'Featured Image/Video'
             ),
             array(
                 'field_id' => 'widget_name',
