@@ -118,6 +118,11 @@ class Posts_Widget extends WP_Widget {
     function query($instance){
         $query['is_widget'] = $instance;
         
+        $format = get_query_var('post_format');
+        if(!empty($format)){
+            $query['post_format'] = "post-format-$format";
+        }
+
         if($instance['widget_name'] == 'summary-list') {
             if($instance['filter-by'] == 'none') {
                 if($instance['recent-filter'] == 'category') {
