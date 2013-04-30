@@ -186,64 +186,6 @@ class Hero_Slider_Widget extends WP_Widget {
         
         $show_options = array(
             array(
-                'field_id' => 'show_title',
-                'type' => 'checkbox',
-                'label' => 'Title'
-            ),
-            array(
-                'field_id' => 'show_subtitle',
-                'type' => 'checkbox',
-                'label' => 'Sub-Title'
-            ),
-            array(
-                'field_id' => 'show_category',
-                'type' => 'checkbox',
-                'label' => 'Category'
-            ),
-            array(
-                'field_id' => 'show_tags',
-                'type' => 'checkbox',
-                'label' => 'Tags'
-            ),
-        );
-        
-        
-        //$this->form_fields($show_options, $instance, true);
-        
-        
-        $show_options = array(
-            array(
-                'field_id' => 'show_content',
-                'type' => 'checkbox',
-                'label' => 'Post Content'
-            ),
-            array(
-                'field_id' => 'show_comment_count',
-                'type' => 'checkbox',
-                'label' => 'Response Count'
-            ),
-        );
-        
-        
-        //$this->form_fields($show_options, $instance, true);
-        
-        $show_options = array(
-            // array(
-            //     'field_id' => 'show_share',
-            //     'type' => 'checkbox',
-            //     'label' => 'Share Icons'
-            // ),
-            // array(
-            //     'field_id' => 'show_date',
-            //     'type' => 'checkbox',
-            //     'label' => 'Date'
-            // ),
-            // array(
-            //     'field_id' => 'show_thumbnail',
-            //     'type' => 'checkbox',
-            //     'label' => 'Featured Image'
-            // ),
-            array(
                 'field_id' => 'widget_name',
                 'type' => 'hidden',
                 'label' => ''
@@ -265,20 +207,82 @@ class Hero_Slider_Widget extends WP_Widget {
         ?><p><strong>Query Options:</strong></p><?php
         
         for ($i = 1; $i < $instance['limit']+1; $i++) {
+            // $query_options[] = array(
+            //     'field_id' => "post__in_" . ($i),
+            //     'type' => 'text',
+            //     'label' => "Post ID #" . ($i),
+            // );
             $query_options[] = array(
-                'field_id' => "post__in_" . ($i),
-                'type' => 'text',
-                'label' => "Post ID #" . ($i),
+                'field_id' => 'slide_type_'.$i,
+                'type' => 'select',
+                'label' => "Slide $i Style",
+                'options' => array(
+                    'none' => 'Blank Layout',
+                    'horizontal' => 'Horizontal Bar',
+                    'vertical' => 'Vertical Bar'
+                )
             );
         }
 
         $this->form_fields($query_options, $instance);
         
+        if ($instance['limit'] > 0) {
+            for ($i = 1; $i < $instance['limit']+1; $i++) {
+                $slide_options[] = array(
+                    'label' => "Slide $i",
+                    'type' => 'header'
+                );
+                // $slide_options[] = array(
+                //     'field_id' => "slide_post_$i",
+                //     'type' => 'text',
+                //     'label' => 'Slide Post ID (optional)'
+                // );
+                if($instance["slide_type_$i"] == "none" || $instance["slide_type_$i"] == "horizontal" || $instance["slide_type_$i"] == "vertical") {
+                    $slide_options[] = array(
+                        'field_id' => "slide_image_$i",
+                        'type' => 'text',
+                        'label' => 'Slide Image Link'
+                    );
+                    $slide_options[] = array(
+                        'field_id' => "slide_click_url_$i",
+                        'type' => 'text',
+                        'label' => 'Slide Destination Link'
+                    );
+                }
+                if ($instance["slide_type_$i"] == "horizontal" || $instance["slide_type_$i"] == "vertical") {
+                    $slide_options[] = array(
+                        'field_id' => "slide_title_$i",
+                        'type' => 'text',
+                        'label' => 'Slide Title'
+                    );
+                    $slide_options[] = array(
+                        'field_id' => "slide_subtitle_$i",
+                        'type' => 'text',
+                        'label' => 'Slide Subtitle'
+                    );
+                }
+                if ($instance["slide_type_$i"] == "vertical") {
+                    $slide_options[] = array(
+                        'field_id' => "slide_excerpt_$i",
+                        'type' => 'textarea',
+                        'label' => 'Slide Excerpt'
+                    );
+                    $slide_options[] = array(
+                        'field_id' => "cta_$i",
+                        'type' => 'text',
+                        'label' => "Call to Action"
+                    );
+                }
+            }
+        }
+        
+        $this->form_fields($slide_options, $instance);
+        
         $limit = array(
             array(
                 'field_id' => 'limit',
                 'type' => 'select',
-                'label' => 'Number of posts',
+                'label' => 'Number of slides',
                 'options' => range(0, 6)
             )
         );
@@ -345,10 +349,15 @@ class Hero_Slider_Widget extends WP_Widget {
         $input_value = (isset($instance[$field_id])) ? $instance[$field_id] : '';
         switch ($type){
             
-            case 'text': ?>
+            case 'header': ?>
             
+                <strong><?php echo $label; ?>:</strong>
+            
+            <?php break;
+            
+            case 'text': ?>
                     <label for="<?php echo $this->get_field_id( $field_id ); ?>"><?php echo $label; ?>: </label>
-                    <input type="text" id="<?php echo $this->get_field_id( $field_id ); ?>" class="widefat" style="<?php echo (isset($style)) ? $style : ''; ?>" class="" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value; ?>" />
+                    <input type="text" id="<?php echo $this->get_field_id( $field_id ); ?>" class="widefat <?php echo $class; ?>" style="<?php echo (isset($style)) ? $style : ''; ?>" class="" name="<?php echo $this->get_field_name( $field_id ); ?>" value="<?php echo $input_value; ?>" />
                 <?php break;
             
             case 'select': ?>
