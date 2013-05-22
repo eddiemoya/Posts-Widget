@@ -82,7 +82,7 @@ class Hero_Slider_Widget extends WP_Widget {
         $instance['include_guide'] = true;
         $instance['pagination'] = false;
  		the_widget('Posts_Widget', $instance, $args);
-        
+        wp_enqueue_script('responslide');
     }
     
     /**
